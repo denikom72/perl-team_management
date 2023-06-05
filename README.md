@@ -1,2 +1,2 @@
-# perl-projects
-perl projects repository
+# perl-team-management
+perl team management repository
