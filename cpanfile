@@ -1,0 +1,10 @@
+requires 'Plack', '>= 1.0047';
+requires 'Starman', '>= 0.4014';
+requires 'CGI';
+requires 'DBI';
+requires 'DBD::SQLite';
+requires 'Template';
+requires 'Crypt::URandom';
+requires 'Digest::SHA';
+requires 'MIME::Base64';
+requires 'Plack::Request';

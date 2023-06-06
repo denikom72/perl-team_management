@@ -1,0 +1,58 @@
+/*
+USAGE OF DTOs
+# Creating and storing team values using TeamDTO
+
+use TeamDTO;
+
+# Creating a new TeamDTO object
+my $team = TeamDTO->new(
+    id   => 1,
+    name => 'Team A'
+);
+
+# Accessing the team values using getters
+my $team_id = $team->id();
+my $team_name = $team->name();
+
+# Printing the team values
+print "Team ID: $team_id\n";
+print "Team Name: $team_name\n";
+
+
+# Creating and storing team member values using TeamMemberDTO
+
+use TeamMemberDTO;
+
+# Creating a new TeamMemberDTO object
+my $team_member = TeamMemberDTO->new(
+    id   => 1,
+    name => 'John Doe'
+);
+
+# Accessing the team member values using getters
+my $member_id = $team_member->id();
+my $member_name = $team_member->name();
+
+# Printing the team member values
+print "Member ID: $member_id\n";
+print "Member Name: $member_name\n";
+
+
+# Creating and storing team role values using TeamRoleDTO
+
+use TeamRoleDTO;
+
+# Creating a new TeamRoleDTO object
+my $team_role = TeamRoleDTO->new(
+    id   => 1,
+    name => 'Developer'
+);
+
+# Accessing the team role values using getters
+my $role_id = $team_role->id();
+my $role_name = $team_role->name();
+
+# Printing the team role values
+print "Role ID: $role_id\n";
+print "Role Name: $role_name\n";
+*/
