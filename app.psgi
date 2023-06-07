@@ -13,7 +13,7 @@ use Plack::Builder;
 use Plack::Middleware::Header;
 use Text::Trim;
 
-my ( $html, $vars, $tpl, $template_context );
+my ( $response, $vars, $tpl, $template_context );
 
 # Set up the CGI environment
 my $cgi = CGI->new();
@@ -26,7 +26,7 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=$db_file") or die "Couldn't connect to
 my $template = Template->new({
     INCLUDE_PATH => './views',
     INTERPOLATE  => 1,
-    CACHE_SIZE => 0
+    CACHE_SIZE => 64 
 }) or die "Couldn't initialize template: $Template::ERROR";
 
 sub set_vars {
@@ -358,18 +358,19 @@ sub app {
         print "Invalid URL.";
     }
     
-    # Create the Plack response with the HTML content
-    
+    my $html = '';
+
     $template_context = $template->context;
     unless ( $template_context->template($tpl)->_is_cached ) { 
          $template->process($tpl, { vars => $vars }, \$html) or die "Template processing failed: $template::ERROR";
     }
 
-    my $response = Plack::Response->new(200);
+    # Create the Plack response with the HTML content
+    $response = Plack::Response->new(200);
     
     $response->content_type('text/html');
     
-    $response->body(trim($html));
+    $response->body($html);
 
     return $response->finalize;
 
