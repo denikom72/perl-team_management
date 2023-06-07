@@ -1,4 +1,16 @@
-[% INCLUDE header.tmpl %]
+[% IF vars.login_cont %]
+[% INCLUDE header.tmpl FILTER trim %]
+
+[% FOREACH var IN vars.keys %]
+    Variable: [% var %]
+    Value: [% vars.$var %]
+[% END %]
+just loaded
+
+[% RETURN %]
+
+[% ELSE  %]
+[% INCLUDE header.tmpl FILTER trim %]
 <body>
   <div class="container">
     <h1>Login</h1>
@@ -17,3 +29,9 @@
 </body>
 </html>
 
+[% SET vars.login_cont = 1 %]
+
+[% CALL set_vars({ login_cont => 1 }) %]
+[% END %]
+
+[% CALL set_vars({ login_cont => 1 }) %]

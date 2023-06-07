@@ -9,3 +9,6 @@ requires 'Crypt::URandom';
 requires 'Digest::SHA';
 requires 'MIME::Base64';
 requires 'Plack::Request';
+requires 'Text::Trim';
+requires 'Plack::Builder';
+requires 'Plack::Middleware::Header';

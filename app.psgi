@@ -9,9 +9,12 @@ use Template;
 use DBI;
 use Digest::SHA qw(sha256_hex);
 use Plack::Response;
+use Plack::Builder;
+use Plack::Middleware::Header;
+use Text::Trim;
 
+my ( $html, $vars, $tpl, $template_context );
 
-my $html;
 # Set up the CGI environment
 my $cgi = CGI->new();
 
@@ -23,7 +26,12 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=$db_file") or die "Couldn't connect to
 my $template = Template->new({
     INCLUDE_PATH => './views',
     INTERPOLATE  => 1,
+    CACHE_SIZE => 0
 }) or die "Couldn't initialize template: $Template::ERROR";
+
+sub set_vars {
+	$vars = shift;
+}
 
 # Generate a CSRF token
 sub generate_csrf_token {
@@ -41,7 +49,11 @@ sub check_csrf_token {
 
 # Show the login form
 sub show_login {
-    $template->process('login.tmpl', {}, \$html) or die "Template processing failed: $template::ERROR";
+    $vars = {
+    	login_cont => undef 
+    };
+	    
+    $tpl = 'login.tmpl';
 }
 
 # Handle the login request
@@ -76,8 +88,8 @@ sub show_admin_panel {
     $stmt->finish();
 
     # Pass the username to the template
-    my $vars = { username => $username };
-    $template->process('admin_panel.tmpl', $vars) or die "Template processing failed: $template::ERROR";
+    $vars = { username => $username };
+    $tpl = 'admin_panel.tmpl';
 }
 
 # Show the teams
@@ -93,8 +105,8 @@ sub show_teams {
     $stmt->finish();
 
     # Pass the teams to the template
-    my $vars = { teams => \@teams };
-    $template->process('teams.tmpl', $vars) or die "Template processing failed: $template::ERROR";
+    $vars = { teams => \@teams };
+    $tpl = 'teams.tmpl';
 }
 
 # Show team members
@@ -109,8 +121,8 @@ sub show_team_members {
     }
     $stmt->finish();
 
-    my $vars = { team_members => \@team_members };
-    $template->process('team_members.tmpl', $vars) or die "Template processing failed: $template::ERROR";
+    $vars = { team_members => \@team_members };
+    $tpl = 'team_members.tmpl';
 }
 
 # Show team roles
@@ -125,8 +137,8 @@ sub show_team_roles {
     }
     $stmt->finish();
 
-    my $vars = { team_roles => \@team_roles };
-    $template->process('team_roles.tmpl', $vars) or die "Template processing failed: $template::ERROR";
+    $vars = { team_roles => \@team_roles };
+    $tpl = 'team_roles.tmpl';
 }
 
 # Handle team creation
@@ -345,15 +357,19 @@ sub app {
         print $cgi->header();
         print "Invalid URL.";
     }
+    
     # Create the Plack response with the HTML content
     
+    $template_context = $template->context;
+    unless ( $template_context->template($tpl)->_is_cached ) { 
+         $template->process($tpl, { vars => $vars }, \$html) or die "Template processing failed: $template::ERROR";
+    }
+
     my $response = Plack::Response->new(200);
     
     $response->content_type('text/html');
     
-
-
-    $response->body($html);
+    $response->body(trim($html));
 
     return $response->finalize;
 
@@ -363,6 +379,15 @@ sub app {
 # Start the PSGI application
 my $app = sub { app(@_) };
 
+builder {
+    enable 'Header',
+        set_headers => {
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        };
+    $app;
+};
 # Export the PSGI application
 return $app;
 
