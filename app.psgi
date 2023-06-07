@@ -8,7 +8,10 @@ use CGI::Session;
 use Template;
 use DBI;
 use Digest::SHA qw(sha256_hex);
+use Plack::Response;
 
+
+my $html;
 # Set up the CGI environment
 my $cgi = CGI->new();
 
@@ -18,7 +21,7 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=$db_file") or die "Couldn't connect to
 
 # Set up the template engine
 my $template = Template->new({
-    INCLUDE_PATH => 'templates',
+    INCLUDE_PATH => './views',
     INTERPOLATE  => 1,
 }) or die "Couldn't initialize template: $Template::ERROR";
 
@@ -38,7 +41,7 @@ sub check_csrf_token {
 
 # Show the login form
 sub show_login {
-    $template->process('login.tmpl') or die "Template processing failed: $template::ERROR";
+    $template->process('login.tmpl', {}, \$html) or die "Template processing failed: $template::ERROR";
 }
 
 # Handle the login request
@@ -247,16 +250,17 @@ sub handle_update_team_role {
 sub app {
     my $env = shift;
 
+    
     # Parse the request parameters
     $cgi->parse_params($env->{QUERY_STRING});
 
     my $path_info = $env->{PATH_INFO};
 
     if ($path_info eq '/login') {
-        if ($cgi->request_method eq 'POST') {
+        if ( defined $cgi->request_method && $cgi->request_method eq 'POST') {
             handle_login();
         } else {
-            show_login();
+				show_login();
         }
     } elsif ($path_info eq '/admin_panel') {
         if (check_csrf_token($cgi)) {
@@ -341,8 +345,19 @@ sub app {
         print $cgi->header();
         print "Invalid URL.";
     }
+    # Create the Plack response with the HTML content
+    
+    my $response = Plack::Response->new(200);
+    
+    $response->content_type('text/html');
+    
 
-    return [200, ['Content-Type' => 'text/html'], ['']];
+
+    $response->body($html);
+
+    return $response->finalize;
+
+    #return [200, ['Content-Type' => 'text/html'], ['']];
 }
 
 # Start the PSGI application
