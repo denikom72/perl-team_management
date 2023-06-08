@@ -23,3 +23,14 @@ CREATE TABLE IF NOT EXISTS team_roles (
   description TEXT
 );
 
+-- Create the users table
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    password BLOB NOT NULL
+);
+
+-- Insert a default user with hashed password
+INSERT INTO users (username, password) VALUES ('admin', '5f4dcc3b5aa765d61d8327deb882cf99');
+
+

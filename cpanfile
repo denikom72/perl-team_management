@@ -12,3 +12,5 @@ requires 'Plack::Request';
 requires 'Text::Trim';
 requires 'Plack::Builder';
 requires 'Plack::Middleware::Header';
+requires 'Plack::Loader';
+requires 'Devel::hdb';

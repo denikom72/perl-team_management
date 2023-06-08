@@ -12,6 +12,13 @@ use Plack::Response;
 use Plack::Builder;
 use Plack::Middleware::Header;
 use Text::Trim;
+use Plack::Loader;
+use Plack::Request;
+#use Devel::hdb;
+use Data::Dumper;
+
+# Enable debugging
+#Devel::hdb->new;
 
 my ( $response, $vars, $tpl, $template_context );
 
@@ -58,6 +65,10 @@ sub show_login {
 
 # Handle the login request
 sub handle_login {
+    my $req_meth = shift;
+    #die("WE'RE AT HANDLE_LOGIN"); 
+    #my $username = 'admin'; 
+    #my $password = 'password'; 
     my $username = $cgi->param('username');
     my $password = $cgi->param('password');
     my $hashed_password = sha256_hex($password);
@@ -67,7 +78,6 @@ sub handle_login {
     $stmt->execute($username, $hashed_password);
     my ($user_id) = $stmt->fetchrow_array();
     $stmt->finish();
-
     if ($user_id) {
         my $session = CGI::Session->new() or die CGI::Session->errstr;
         $session->param('user_id', $user_id);
@@ -261,18 +271,32 @@ sub handle_update_team_role {
 # Main PSGI application handler
 sub app {
     my $env = shift;
-
-    
+    print STDERR "__________________________________________\n\n";
+    #print STDERR Dumper($env);   
     # Parse the request parameters
-    $cgi->parse_params($env->{QUERY_STRING});
+    
+    my $req = Plack::Request->new($env);
+    #my $res = Plack::Response->new();
+
+    #print STDERR Dumper $req;
+    #print STDERR Dumper $res;
+    
+    #$cgi->parse_params($env->{QUERY_STRING});
 
     my $path_info = $env->{PATH_INFO};
 
+    my $request_method = $env->{REQUEST_METHOD};
+   	print $path_info . " - " . $request_method . "\n"; 
+	print STDERR ">>>>>>>>>>>>>>>__________________________________________\n\n";
+    
     if ($path_info eq '/login') {
-        if ( defined $cgi->request_method && $cgi->request_method eq 'POST') {
-            handle_login();
+        
+	if ( $request_method eq 'POST') {
+            
+	print STDERR ">>>>>>>>>>>>>>>__________________________________________\n\n";
+	     handle_login(\$request_method);
         } else {
-				show_login();
+	     show_login();
         }
     } elsif ($path_info eq '/admin_panel') {
         if (check_csrf_token($cgi)) {
@@ -362,7 +386,7 @@ sub app {
 
     $template_context = $template->context;
     unless ( $template_context->template($tpl)->_is_cached ) { 
-         $template->process($tpl, { vars => $vars }, \$html) or die "Template processing failed: $template::ERROR";
+         $template->process($tpl, { vars => $vars }, \$html) or die " >>>>>>>>>>>>>>>>>>>>>>> Template processing failed: $template::ERROR";
     }
 
     # Create the Plack response with the HTML content
@@ -380,15 +404,16 @@ sub app {
 # Start the PSGI application
 my $app = sub { app(@_) };
 
-builder {
-    enable 'Header',
-        set_headers => {
-            'Cache-Control' => 'no-cache, no-store, must-revalidate',
-            'Pragma' => 'no-cache',
-            'Expires' => '0',
-        };
-    $app;
-};
+#builder {
+#    enable 'Header',
+#        set_headers => {
+#            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+#            'Pragma' => 'no-cache',
+#            'Expires' => '0',
+#        };
+#    $app;
+#};
 # Export the PSGI application
+
 return $app;
 
