@@ -14,6 +14,7 @@ use Plack::Middleware::Header;
 use Text::Trim;
 use Plack::Loader;
 use Plack::Request;
+use Plack::Session;
 #use Devel::hdb;
 use Data::Dumper;
 
@@ -65,12 +66,13 @@ sub show_login {
 
 # Handle the login request
 sub handle_login {
-    my $req_meth = shift;
+    my $req = shift;
     #my $username = 'admin'; 
     #my $password = 'password'; 
     my $username = $req->param('username');
     my $password = $req->param('password');
-    my $hashed_password = sha256_hex($password);
+    #my $hashed_password = sha256_hex($password);
+    my $hashed_password = $password;
 
     # Perform the login validation
     my $stmt = $dbh->prepare('SELECT id FROM users WHERE username = ? AND password = ?');
@@ -79,12 +81,13 @@ sub handle_login {
     $stmt->finish();
     if ($user_id) {
 	print STDERR "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL " . $user_id;
-        my $session = CGI::Session->new() or die CGI::Session->errstr;
-        $session->param('user_id', $user_id);
-        $session->param('csrf_token', generate_csrf_token());
-        print $cgi->redirect(-url => '/admin_panel');
+	#my $session = Plack::Session->new() or die Plack::Session->errstr;
+        my $session = $req->session or die ( "session error");
+        $session->set('user_id', $user_id);
+        $session->set('csrf_token', generate_csrf_token());
+        $response->redirect('/admin_panel');
     } else {
-        print $cgi->header();
+	#print $cgi->header();
         print "Invalid username or password.";
     }
 }
@@ -295,7 +298,7 @@ sub app {
         
 	if ( $request_method eq 'POST') {
             
-	     handle_login();
+	     handle_login(\$req);
         } else {
 	     show_login();
         }

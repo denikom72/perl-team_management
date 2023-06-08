@@ -13,4 +13,5 @@ requires 'Text::Trim';
 requires 'Plack::Builder';
 requires 'Plack::Middleware::Header';
 requires 'Plack::Loader';
+requires 'Plack::Session';
 requires 'Devel::hdb';
