@@ -20,13 +20,13 @@ use Data::Dumper;
 # Enable debugging
 #Devel::hdb->new;
 
-my ( $response, $vars, $tpl, $template_context );
+my ( $req, $response, $vars, $tpl, $template_context );
 
 # Set up the CGI environment
 my $cgi = CGI->new();
 
 # Configure the database connection
-my $db_file = 'database.db';
+my $db_file = 'team_management.db';
 my $dbh = DBI->connect("dbi:SQLite:dbname=$db_file") or die "Couldn't connect to database: $DBI::errstr";
 
 # Set up the template engine
@@ -66,11 +66,10 @@ sub show_login {
 # Handle the login request
 sub handle_login {
     my $req_meth = shift;
-    #die("WE'RE AT HANDLE_LOGIN"); 
     #my $username = 'admin'; 
     #my $password = 'password'; 
-    my $username = $cgi->param('username');
-    my $password = $cgi->param('password');
+    my $username = $req->param('username');
+    my $password = $req->param('password');
     my $hashed_password = sha256_hex($password);
 
     # Perform the login validation
@@ -79,6 +78,7 @@ sub handle_login {
     my ($user_id) = $stmt->fetchrow_array();
     $stmt->finish();
     if ($user_id) {
+	print STDERR "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL " . $user_id;
         my $session = CGI::Session->new() or die CGI::Session->errstr;
         $session->param('user_id', $user_id);
         $session->param('csrf_token', generate_csrf_token());
@@ -271,30 +271,31 @@ sub handle_update_team_role {
 # Main PSGI application handler
 sub app {
     my $env = shift;
+    
     print STDERR "__________________________________________\n\n";
     #print STDERR Dumper($env);   
-    # Parse the request parameters
     
-    my $req = Plack::Request->new($env);
+    # TODO:Parse the request parameters
+    
+    $req = Plack::Request->new($env);
     #my $res = Plack::Response->new();
 
-    #print STDERR Dumper $req;
-    #print STDERR Dumper $res;
+    print STDERR Dumper $req->parameters;
+
+    print STDERR Dumper $req->param('password');
+    print STDERR Dumper $req->param('username');
     
     #$cgi->parse_params($env->{QUERY_STRING});
 
     my $path_info = $env->{PATH_INFO};
 
     my $request_method = $env->{REQUEST_METHOD};
-   	print $path_info . " - " . $request_method . "\n"; 
-	print STDERR ">>>>>>>>>>>>>>>__________________________________________\n\n";
     
     if ($path_info eq '/login') {
         
 	if ( $request_method eq 'POST') {
             
-	print STDERR ">>>>>>>>>>>>>>>__________________________________________\n\n";
-	     handle_login(\$request_method);
+	     handle_login();
         } else {
 	     show_login();
         }
