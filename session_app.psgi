@@ -36,11 +36,43 @@ my $app = sub {
     
     my $link = $session->{user}
             ? q{ <a href="/logout">logout</a>}
-            : q{ <a href="/login">login</a>}
+            : q{ <a href="/loginpage">login</a>}
             ;
     
     $res->body(["Session user:", $session->{user}, "<br>$link"]);
     
+    return $res->finalize;
+};
+
+
+my $loginpage = sub {
+    
+    my $env = shift;
+    my $req = Plack::Request->new($env);
+    my $session = $req->session;
+
+    #$session->{user} = "some";
+    $session->{csrf_token} = generate_csrf_token();
+    #how to set here the session-state-cookie expiration?
+
+    my $res = Plack::Response->new(200);
+    $res->content_type('text/html');
+    
+    my $html = '';
+    
+    my $vars = { login_count => undef };
+    
+    my $tpl = "login.tmpl";
+    
+    #$tpl = "admin_panel.tmpl";
+
+    my $template_context = $template->context;
+    unless ( $template_context->template($tpl)->_is_cached ) { 
+         $template->process($tpl, { vars => $vars }, \$html) or die " >>>>>>>>>>>>>>>>>>>>>>> Template processing failed: $template::ERROR";
+    }
+
+    $res->body($html);
+    #$res->redirect("/", 302);
     return $res->finalize;
 };
 
@@ -102,6 +134,7 @@ sub check_csrf_token {
 
 builder {
     enable 'Session', store => 'File';
+    mount "/" => $loginpage;
     mount "/login" => $login;
     mount "/logout" => $logout;
     mount "/favicon.ico" => sub { return [ 404, ['Content-Type' => 'text/html'], [ '404 Not Found' ] ] };
