@@ -109,7 +109,7 @@ Sets the password of the user. Performs a plausibility check to ensure the passw
 sub set_password {
     my ($self, $password) = @_;
 
-    if ($password =~ /^[^0-9A-Fa-f]+$/) {
+    if ($password =~ /^[0-9A-Za-z]+$/) {
         $self->{_password} = $password;
     }
     else {
