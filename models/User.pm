@@ -3,6 +3,7 @@ package User;
 use strict;
 use warnings;
 use Carp;
+use Try::Tiny;
 
 =head1 NAME
 
@@ -20,9 +21,14 @@ User - Represents a user with email, password, and ID
     my $id = $user->get_id();
 
     # Setters
-    $user->set_email('newuser@example.com');
-    $user->set_password('newpassword');
-    $user->set_id(2);
+    try {
+        $user->set_email('newuser@example.com');
+        $user->set_password('newpassword');
+        $user->set_id(2);
+    }
+    catch {
+        print "Error: $_\n";
+    };
 
 =head1 DESCRIPTION
 
@@ -43,9 +49,14 @@ sub new {
 
     bless $self, $class;
 
-    $self->set_email($email)       if defined $email;
-    $self->set_password($password) if defined $password;
-    $self->set_id($id)             if defined $id;
+    try {
+        $self->set_email($email)       if defined $email;
+        $self->set_password($password) if defined $password;
+        $self->set_id($id)             if defined $id;
+    }
+    catch {
+        croak("Error creating user: $_");
+    };
 
     return $self;
 }
@@ -119,13 +130,19 @@ sub get_id {
 
 =head2 set_id
 
-Sets the ID of the user.
+Sets the ID of the user. Performs a plausibility check to ensure the ID is a positive integer.
 
 =cut
 
 sub set_id {
     my ($self, $id) = @_;
-    $self->{_id} = $id;
+
+    if ($id =~ /^[1-9]\d*$/) {
+        $self->{_id} = $id;
+    }
+    else {
+        croak("Invalid ID format");
+    }
 }
 
 1;
