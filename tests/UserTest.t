@@ -1,91 +1,108 @@
 use strict;
 use warnings;
 use Test::More;
-use Test::BDD::Cucumber::StepFile;
 use Try::Tiny;
+
+use Cwd;
+use lib getcwd() . "/../models/";
+use lib "/home/sw-engineer/perl_projects/perl-team_management/models/";
 use User;
 
-=head1 NAME
+# Test constructor and getters
+sub test_constructor_and_getters {
+    my $user = User->new('user@example.com', 'password123', 1);
+    
+    is($user->get_email(), 'user@example.com', 'Email getter returns correct value');
+    is($user->get_password(), 'password123', 'Password getter returns correct value');
+    is($user->get_id(), 1, 'ID getter returns correct value');
+}
 
-UserTest - Unit tests for the User module
-
-=head1 SYNOPSIS
-
-    # Run the tests
-    prove -l UserTest.t
-
-=head1 DESCRIPTION
-
-This script contains unit tests for the User module. It verifies the behavior of the User class and its setters.
-
-=head1 AUTHOR
-
-Denis Komnenovic
-
-=cut
-
-Given 'a valid email address' => sub {
+# Test email setter with valid email
+sub test_set_email_valid {
     my $user = User->new();
-    my $email = 'user@example.com';
-    $user->set_email($email);
-    set_context('user' => $user);
-};
+    
+    try {
+        $user->set_email('user@example.com');
+        pass('Email setter accepted valid email');
+    }
+    catch {
+        fail("Email setter threw an error: $_");
+    };
+}
 
-Then 'the email should be set correctly' => sub {
-    my $user = get_context('user');
-    my $email = 'user@example.com';
-    is($user->get_email(), $email, 'Email should be set correctly');
-};
-
-Given 'an invalid email address' => sub {
+# Test email setter with invalid email
+sub test_set_email_invalid {
     my $user = User->new();
-    my $invalid_email = 'invalid_email';
-    set_context('user' => $user);
-    set_context('invalid_email' => $invalid_email);
-};
+    
+    try {
+        $user->set_email('invalid_email');
+        fail('Email setter accepted invalid email');
+    }
+    catch {
+        like($_, qr/Invalid email format/, 'Email setter threw an error for invalid email');
+    };
+}
 
-When 'setting the email' => sub {
-    my $user = get_context('user');
-    my $invalid_email = get_context('invalid_email');
-    set_context('exception' => exception { $user->set_email($invalid_email) });
-};
-
-Then 'an exception should be thrown' => sub {
-    my $exception = get_context('exception');
-    ok($exception, 'An exception should be thrown');
-};
-
-Given 'a valid password' => sub {
+# Test password setter with valid password
+sub test_set_password_valid {
     my $user = User->new();
-    my $password = 'validpassword';
-    $user->set_password($password);
-    set_context('user' => $user);
-};
+    
+    try {
+        $user->set_password('newpassword');
+        pass('Password setter accepted valid password');
+    }
+    catch {
+        fail("Password setter threw an error: $_");
+    };
+}
 
-Then 'the password should be set correctly' => sub {
-    my $user = get_context('user');
-    my $password = 'validpassword';
-    is($user->get_password(), $password, 'Password should be set correctly');
-};
-
-Given 'an invalid password' => sub {
+# Test password setter with invalid password
+sub test_set_password_invalid {
     my $user = User->new();
-    my $invalid_password = 'invalidpassword\x{123}';
-    set_context('user' => $user);
-    set_context('invalid_password' => $invalid_password);
-};
+    
+    try {
+        $user->set_password('pass');
+        fail('Password setter accepted invalid password');
+    }
+    catch {
+        like($_, qr/Password must be at least 6 characters long/, 'Password setter threw an error for invalid password');
+    };
+}
 
-When 'setting the password' => sub {
-    my $user = get_context('user');
-    my $invalid_password = get_context('invalid_password');
-    set_context('exception' => exception { $user->set_password($invalid_password) });
-};
+# Test id setter with valid id
+sub test_set_id_valid {
+    my $user = User->new();
+    
+    try {
+        $user->set_id(2);
+        pass('ID setter accepted valid ID');
+    }
+    catch {
+        fail("ID setter threw an error: $_");
+    };
+}
 
-Then 'an exception should be thrown' => sub {
-    my $exception = get_context('exception');
-    ok($exception, 'An exception should be thrown');
-};
+# Test id setter with invalid id
+sub test_set_id_invalid {
+    my $user = User->new();
+    
+    try {
+        $user->set_id('two');
+        fail('ID setter accepted invalid ID');
+    }
+    catch {
+        like($_, qr/ID must be a positive integer/, 'ID setter threw an error for invalid ID');
+    };
+}
 
-run_feature();
+# Run tests
+test_constructor_and_getters();
+test_set_email_valid();
+test_set_email_invalid();
+test_set_password_valid();
+test_set_password_invalid();
+test_set_id_valid();
+test_set_id_invalid();
 
+done_testing();
 
