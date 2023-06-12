@@ -41,6 +41,34 @@ describe 'User module' => sub {
         };
     };
 
+    it 'should not allow invalid emails' => sub {
+        my $user = User->new('user@example.com', 'password123', 1);
+
+        # Test invalid characters in email
+        try {
+            $user->set_email('invalid^email@example.com');
+            fail('Email setter - invalid characters');
+        } catch {
+            like($_, qr/Invalid email format/, 'Email setter - invalid characters');
+        };
+
+        # Test missing '@' symbol
+        try {
+            $user->set_email('invalid-email.com');
+            fail('Email setter - missing @ symbol');
+        } catch {
+            like($_, qr/Invalid email format/, 'Email setter - missing @ symbol');
+        };
+
+        # Test missing domain
+        try {
+            $user->set_email('invalid@');
+            fail('Email setter - missing domain');
+        } catch {
+            like($_, qr/Invalid email format/, 'Email setter - missing domain');
+        };
+    };
+
     it 'should have a password' => sub {
         my $user = User->new('user@example.com', 'password123', 1);
         is($user->get_password, 'password123', 'Password getter');
