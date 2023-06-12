@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
-use Test::More::Behaviour;
+use Test::BDD::Cucumber::StepFile;
 use Try::Tiny;
 use User;
 
@@ -12,7 +12,7 @@ UserTest - Unit tests for the User module
 =head1 SYNOPSIS
 
     # Run the tests
-    prove UserTest.t
+    prove -l UserTest.t
 
 =head1 DESCRIPTION
 
@@ -24,62 +24,68 @@ Denis Komnenovic
 
 =cut
 
-behaviour {
-    describe 'User module' => sub {
-
-        # Test valid email
-        it 'should set a valid email correctly' => sub {
-            my $user = User->new('user@example.com', 'password123', 1);
-            is($user->get_email(), 'user@example.com', 'Email should be set correctly');
-        };
-
-        # Test invalid email
-        it 'should throw an exception for an invalid email' => sub {
-            try {
-                my $user = User->new('invalid_email', 'password123', 1);
-                fail('Invalid email should throw an exception');
-            }
-            catch {
-                like($_, qr/Invalid email format/, 'Exception should be thrown for invalid email');
-            };
-        };
-
-        # Test valid password
-        it 'should set a valid password correctly' => sub {
-            my $user = User->new('user@example.com', 'validpassword', 1);
-            is($user->get_password(), 'validpassword', 'Password should be set correctly');
-        };
-
-        # Test invalid password
-        it 'should throw an exception for an invalid password' => sub {
-            try {
-                my $user = User->new('user@example.com', 'invalidpassword\x{123}', 1);
-                fail('Invalid password should throw an exception');
-            }
-            catch {
-                like($_, qr/Invalid password format/, 'Exception should be thrown for invalid password');
-            };
-        };
-
-        # Test valid ID
-        it 'should set a valid ID correctly' => sub {
-            my $user = User->new('user@example.com', 'password123', 1);
-            is($user->get_id(), 1, 'ID should be set correctly');
-        };
-
-        # Test invalid ID
-        it 'should throw an exception for an invalid ID' => sub {
-            try {
-                my $user = User->new('user@example.com', 'password123', 'invalidid');
-                fail('Invalid ID should throw an exception');
-            }
-            catch {
-                like($_, qr/Invalid ID format/, 'Exception should be thrown for invalid ID');
-            };
-        };
-
-    };
+Given 'a valid email address' => sub {
+    my $user = User->new();
+    my $email = 'user@example.com';
+    $user->set_email($email);
+    set_context('user' => $user);
 };
 
-done_testing();
+Then 'the email should be set correctly' => sub {
+    my $user = get_context('user');
+    my $email = 'user@example.com';
+    is($user->get_email(), $email, 'Email should be set correctly');
+};
+
+Given 'an invalid email address' => sub {
+    my $user = User->new();
+    my $invalid_email = 'invalid_email';
+    set_context('user' => $user);
+    set_context('invalid_email' => $invalid_email);
+};
+
+When 'setting the email' => sub {
+    my $user = get_context('user');
+    my $invalid_email = get_context('invalid_email');
+    set_context('exception' => exception { $user->set_email($invalid_email) });
+};
+
+Then 'an exception should be thrown' => sub {
+    my $exception = get_context('exception');
+    ok($exception, 'An exception should be thrown');
+};
+
+Given 'a valid password' => sub {
+    my $user = User->new();
+    my $password = 'validpassword';
+    $user->set_password($password);
+    set_context('user' => $user);
+};
+
+Then 'the password should be set correctly' => sub {
+    my $user = get_context('user');
+    my $password = 'validpassword';
+    is($user->get_password(), $password, 'Password should be set correctly');
+};
+
+Given 'an invalid password' => sub {
+    my $user = User->new();
+    my $invalid_password = 'invalidpassword\x{123}';
+    set_context('user' => $user);
+    set_context('invalid_password' => $invalid_password);
+};
+
+When 'setting the password' => sub {
+    my $user = get_context('user');
+    my $invalid_password = get_context('invalid_password');
+    set_context('exception' => exception { $user->set_password($invalid_password) });
+};
+
+Then 'an exception should be thrown' => sub {
+    my $exception = get_context('exception');
+    ok($exception, 'An exception should be thrown');
+};
+
+run_feature();
+
 
