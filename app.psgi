@@ -21,7 +21,8 @@ use Data::Dumper;
 # Enable debugging
 #Devel::hdb->new;
 
-my ( $req, $response, $vars, $tpl, $template_context );
+my ( $session, $req, $response, $vars, $tpl, $template_context );
+
 
 # Set up the CGI environment
 my $cgi = CGI->new();
@@ -56,17 +57,24 @@ sub check_csrf_token {
 }
 
 # Show the login form
-sub show_login {
+my $show_login = sub{
     $vars = {
     	login_cont => undef 
     };
 	    
     $tpl = 'login.tmpl';
-}
+};
 
 # Handle the login request
-sub handle_login {
-    my $req = shift;
+my $handle_login = sub{
+    #my $req = shift;
+      
+    print STDERR "\n\n________**********_________________IN__HANDLE_LOGIN___________\n\n";
+    print STDERR Dumper $req->parameters;
+
+    print STDERR $req->param('password');
+    print STDERR $req->param('username');
+    
     #my $username = 'admin'; 
     #my $password = 'password'; 
     my $username = $req->param('username');
@@ -82,18 +90,26 @@ sub handle_login {
     if ($user_id) {
 	print STDERR "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL " . $user_id;
 	#my $session = Plack::Session->new() or die Plack::Session->errstr;
-        my $session = $req->session or die ( "session error");
-        $session->set('user_id', $user_id);
-        $session->set('csrf_token', generate_csrf_token());
-        $response->redirect('/admin_panel');
+	#my $session = $req->session() or die ( "session error");
+	print STDERR Dumper $session;
+	print STDERR "99999999999999999999999OOOOOOOOOOOOOLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL " . $user_id;
+        $session->{user_id} = "1";
+
+        $session->{csrf_token} = generate_csrf_token();
+	print STDERR "ZZZZZZZZZZZZZZZZZZZLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL " . Dumper $session;
+	
+	#my $res = Plack::Response->new();
+	#$response->redirect('/testlogin');
+
+	#return $response->finalize;
     } else {
 	#print $cgi->header();
         print "Invalid username or password.";
     }
-}
+};
 
 # Show the admin panel
-sub show_admin_panel {
+my $show_admin_panel = sub{
     my $user_id = CGI::Session->load()->param('user_id');
     my $stmt = $dbh->prepare('SELECT username FROM users WHERE id = ?');
     $stmt->execute($user_id);
@@ -103,10 +119,10 @@ sub show_admin_panel {
     # Pass the username to the template
     $vars = { username => $username };
     $tpl = 'admin_panel.tmpl';
-}
+};
 
 # Show the teams
-sub show_teams {
+my $show_teams = sub{
     # Fetch teams from the database
     my $stmt = $dbh->prepare('SELECT id, name FROM teams');
     $stmt->execute();
@@ -120,10 +136,10 @@ sub show_teams {
     # Pass the teams to the template
     $vars = { teams => \@teams };
     $tpl = 'teams.tmpl';
-}
+};
 
 # Show team members
-sub show_team_members {
+my $show_team_members = sub{
     my ($team_id) = @_;
     my $stmt = $dbh->prepare('SELECT id, name FROM team_members WHERE team_id = ?');
     $stmt->execute($team_id);
@@ -136,10 +152,10 @@ sub show_team_members {
 
     $vars = { team_members => \@team_members };
     $tpl = 'team_members.tmpl';
-}
+};
 
 # Show team roles
-sub show_team_roles {
+my $show_team_roles = sub{
     my ($team_id) = @_;
     my $stmt = $dbh->prepare('SELECT id, name FROM team_roles WHERE team_id = ?');
     $stmt->execute($team_id);
@@ -152,10 +168,10 @@ sub show_team_roles {
 
     $vars = { team_roles => \@team_roles };
     $tpl = 'team_roles.tmpl';
-}
+};
 
 # Handle team creation
-sub handle_create_team {
+my $handle_create_team = sub{
     my $name = $cgi->param('name');
 
     # Insert the team into the database
@@ -164,10 +180,10 @@ sub handle_create_team {
     $stmt->finish();
 
     print $cgi->redirect(-url => '/admin_panel?action=teams');
-}
+};
 
 # Handle team deletion
-sub handle_delete_team {
+my $handle_delete_team = sub{
     my $team_id = $cgi->param('team_id');
 
     # Delete the team from the database
@@ -176,10 +192,10 @@ sub handle_delete_team {
     $stmt->finish();
 
     print $cgi->redirect(-url => '/admin_panel?action=teams');
-}
+};
 
 # Handle team update
-sub handle_update_team {
+my $handle_update_team = sub{
     my $team_id = $cgi->param('team_id');
     my $name = $cgi->param('name');
 
@@ -189,10 +205,10 @@ sub handle_update_team {
     $stmt->finish();
 
     print $cgi->redirect(-url => '/admin_panel?action=teams');
-}
+};
 
 # Handle team member creation
-sub handle_create_team_member {
+my $handle_create_team_member = sub{
     my $team_id = $cgi->param('team_id');
     my $name = $cgi->param('name');
 
@@ -202,10 +218,10 @@ sub handle_create_team_member {
     $stmt->finish();
 
     print $cgi->redirect(-url => '/admin_panel?action=team_members&team_id=' . $team_id);
-}
+};
 
 # Handle team member deletion
-sub handle_delete_team_member {
+my $handle_delete_team_member = sub{
     my $team_member_id = $cgi->param('team_member_id');
     my $team_id = $cgi->param('team_id');
 
@@ -215,10 +231,10 @@ sub handle_delete_team_member {
     $stmt->finish();
 
     print $cgi->redirect(-url => '/admin_panel?action=team_members&team_id=' . $team_id);
-}
+};
 
 # Handle team member update
-sub handle_update_team_member {
+my $handle_update_team_member = sub{
     my $team_member_id = $cgi->param('team_member_id');
     my $team_id = $cgi->param('team_id');
     my $name = $cgi->param('name');
@@ -229,10 +245,10 @@ sub handle_update_team_member {
     $stmt->finish();
 
     print $cgi->redirect(-url => '/admin_panel?action=team_members&team_id=' . $team_id);
-}
+};
 
 # Handle team role creation
-sub handle_create_team_role {
+my $handle_create_team_role = sub{
     my $team_id = $cgi->param('team_id');
     my $name = $cgi->param('name');
 
@@ -242,10 +258,10 @@ sub handle_create_team_role {
     $stmt->finish();
 
     print $cgi->redirect(-url => '/admin_panel?action=team_roles&team_id=' . $team_id);
-}
+};
 
 # Handle team role deletion
-sub handle_delete_team_role {
+my $handle_delete_team_role = sub{
     my $team_role_id = $cgi->param('team_role_id');
     my $team_id = $cgi->param('team_id');
 
@@ -255,10 +271,10 @@ sub handle_delete_team_role {
     $stmt->finish();
 
     print $cgi->redirect(-url => '/admin_panel?action=team_roles&team_id=' . $team_id);
-}
+};
 
 # Handle team role update
-sub handle_update_team_role {
+my $handle_update_team_role = sub{
     my $team_role_id = $cgi->param('team_role_id');
     my $team_id = $cgi->param('team_id');
     my $name = $cgi->param('name');
@@ -269,13 +285,15 @@ sub handle_update_team_role {
     $stmt->finish();
 
     print $cgi->redirect(-url => '/admin_panel?action=team_roles&team_id=' . $team_id);
-}
+};
 
 # Main PSGI application handler
 sub app {
     my $env = shift;
     
-    print STDERR "__________________________________________\n\n";
+    $response = Plack::Response->new(200);
+    
+    print STDERR "OOOOOO__________________________________________\n\n";
     #print STDERR Dumper($env);   
     
     # TODO:Parse the request parameters
@@ -285,8 +303,10 @@ sub app {
 
     print STDERR Dumper $req->parameters;
 
-    print STDERR Dumper $req->param('password');
-    print STDERR Dumper $req->param('username');
+    print STDERR $req->param('password');
+    print STDERR $req->param('username');
+    
+    $session = $req->session; # or die "session error"; 
     
     #$cgi->parse_params($env->{QUERY_STRING});
 
@@ -294,15 +314,17 @@ sub app {
 
     my $request_method = $env->{REQUEST_METHOD};
     
-    if ($path_info eq '/login') {
-        
-	if ( $request_method eq 'POST') {
-            
-	     handle_login(\$req);
-        } else {
-	     show_login();
-        }
-    } elsif ($path_info eq '/admin_panel') {
+#    if ($path_info eq '/login') {
+#        
+#	if ( $request_method eq 'POST') {
+#            
+#	     handle_login();
+#        } else {
+#	     show_login();
+#        }
+#    } 
+    #elsif ($path_info eq '/admin_panel') {
+    if ($path_info eq '/admin_panel') {
         if (check_csrf_token($cgi)) {
             if ($cgi->param('action') eq 'teams') {
                 show_teams();
@@ -394,7 +416,6 @@ sub app {
     }
 
     # Create the Plack response with the HTML content
-    $response = Plack::Response->new(200);
     
     $response->content_type('text/html');
     
@@ -408,16 +429,19 @@ sub app {
 # Start the PSGI application
 my $app = sub { app(@_) };
 
-#builder {
-#    enable 'Header',
-#        set_headers => {
-#            'Cache-Control' => 'no-cache, no-store, must-revalidate',
-#            'Pragma' => 'no-cache',
-#            'Expires' => '0',
-#        };
-#    $app;
-#};
+builder {
+     enable 'Session', store => 'File'; #default uses Plack::Session::State::Cookie
+     #enable 'Header',
+     #  set_headers => {
+     #      'Cache-Control' => 'no-cache, no-store, must-revalidate',
+     #      'Pragma' => 'no-cache',
+     #      'Expires' => '0',
+     #  };
+     mount "/" => $app;
+     mount "/login" => $show_login;
+};
+
 # Export the PSGI application
 
-return $app;
+#return $app;
 

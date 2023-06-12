@@ -15,3 +15,7 @@ requires 'Plack::Middleware::Header';
 requires 'Plack::Loader';
 requires 'Plack::Session';
 requires 'Devel::hdb';
+requires 'Test::More';
+requires 'Test::Exception';
+requires 'Cucumber::Load';
+requires 'Test::BDD::Cucumber::StepFile';

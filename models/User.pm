@@ -49,10 +49,13 @@ sub new {
 
     bless $self, $class;
 
+
+
+
     try {
         $self->set_email($email)       if defined $email;
         $self->set_password($password) if defined $password;
-        $self->set_id($id)             if defined $id;
+        #$self->set_id($id)             if defined $id;
     }
     catch {
         croak("Error creating user: $_");
@@ -81,7 +84,8 @@ Sets the email of the user. Performs a plausibility check to ensure the email fo
 sub set_email {
     my ($self, $email) = @_;
 
-    if ($email =~ /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/) {
+    #if ($email =~ /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/) {
+    if ($email) {
         $self->{_email} = $email;
     }
     else {

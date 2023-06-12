@@ -8,6 +8,8 @@ use Data::Dumper;
 use Template;
 use DBI;
 
+use lib "models";
+use User;
 
 my ( $tpl, $vars );
 
@@ -90,12 +92,14 @@ my $login = sub {
     $session->{csrf_token} = generate_csrf_token();
     #how to set here the session-state-cookie expiration?
 
+    my $user = User->new($req->param('username'), $req->param('password'));
+    
     my $res = Plack::Response->new(200);
     $res->content_type('text/html');
     
     my $html = '';
     
-    $vars = { username => $session->{user} };
+    $vars = { usermail => $user->get_email(), content => "<a href='/logout'>logout</a>" };
     #$tpl = "login.tmpl";
     $tpl = "admin_panel.tmpl";
     
@@ -147,124 +151,6 @@ builder {
     mount "/" => $app;
 };
 
-
-package User;
-
-ipackage User;
-
-use strict;
-use warnings;
-
-=head1 NAME
-
-User - Represents a user with email, password, and id attributes
-
-=head1 SYNOPSIS
-
-  use User;
-
-  my $user = User->new('user@example.com', 'password123', 1);
-
-  my $email = $user->get_email;
-  my $password = $user->get_password;
-  my $id = $user->get_id;
-
-  $user->set_email('newuser@example.com');
-  $user->set_password('newpassword');
-  $user->set_id(2);
-
-=head1 DESCRIPTION
-
-The User module represents a user with email, password, and id attributes. It provides methods for accessing and modifying these attributes.
-
-=head1 METHODS
-
-=cut
-
-sub new {
-    my ($class, $email, $password, $id) = @_;
-    my $self = {
-        email    => $email,
-        password => $password,
-        id       => $id,
-    };
-    bless $self, $class;
-    return $self;
-}
-
-=head2 get_email
-
-Returns the user's email address.
-
-=cut
-
-sub get_email {
-    my ($self) = @_;
-    return $self->{email};
-}
-
-=head2 set_email
-
-Sets the user's email address. Performs a plausibility check using regex.
-
-=cut
-
-sub set_email {
-    my ($self, $email) = @_;
-
-    # Plausibility check using regex
-    if ($email =~ /^[^\s@]+@[^\s@]+\.[^\s@]+$/) {
-        $self->{email} = $email;
-    } else {
-        die "Invalid email format";
-    }
-}
-
-=head2 get_password
-
-Returns the user's password.
-
-=cut
-
-sub get_password {
-    my ($self) = @_;
-    return $self->{password};
-}
-
-=head2 set_password
-
-Sets the user's password.
-
-=cut
-
-sub set_password {
-    my ($self, $password) = @_;
-    $self->{password} = $password;
-}
-
-=head2 get_id
-
-Returns the user's ID.
-
-=cut
-
-sub get_id {
-    my ($self) = @_;
-    return $self->{id};
-}
-
-=head2 set_id
-
-Sets the user's ID.
-
-=cut
-
-sub set_id {
-    my ($self, $id) = @_;
-    $self->{id} = $id;
-}
-
-1;
 
 
 
