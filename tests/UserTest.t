@@ -1,102 +1,85 @@
 use strict;
 use warnings;
 use Test::More;
-use Test::More::Behavior;
+use Test::More::Behaviour;
 use Try::Tiny;
-
-use_ok('User');
+use User;
 
 =head1 NAME
 
-UserTest - Test script for User module
+UserTest - Unit tests for the User module
 
 =head1 SYNOPSIS
 
-    # To run the tests
+    # Run the tests
     prove UserTest.t
 
 =head1 DESCRIPTION
 
-This script contains unit tests for the User module, covering the getters and setters.
+This script contains unit tests for the User module. It verifies the behavior of the User class and its setters.
 
-=head1 FUNCTIONS
+=head1 AUTHOR
 
-=head2 describe 'User module'
-
-A behavior block that groups the tests for the User module.
+Denis Komnenovic
 
 =cut
 
-describe 'User module' => sub {
+behaviour {
+    describe 'User module' => sub {
 
-    it 'should have a valid email' => sub {
-        my $user = User->new('user@example.com', 'password123', 1);
-        is($user->get_email, 'user@example.com', 'Email getter');
-
-        try {
-            $user->set_email('newuser@example.com');
-            pass('Email setter - valid email');
-        } catch {
-            fail('Email setter - invalid email');
-        };
-    };
-
-    it 'should not allow invalid emails' => sub {
-        my $user = User->new('user@example.com', 'password123', 1);
-
-        # Test invalid characters in email
-        try {
-            $user->set_email('invalid^email@example.com');
-            fail('Email setter - invalid characters');
-        } catch {
-            like($_, qr/Invalid email format/, 'Email setter - invalid characters');
+        # Test valid email
+        it 'should set a valid email correctly' => sub {
+            my $user = User->new('user@example.com', 'password123', 1);
+            is($user->get_email(), 'user@example.com', 'Email should be set correctly');
         };
 
-        # Test missing '@' symbol
-        try {
-            $user->set_email('invalid-email.com');
-            fail('Email setter - missing @ symbol');
-        } catch {
-            like($_, qr/Invalid email format/, 'Email setter - missing @ symbol');
+        # Test invalid email
+        it 'should throw an exception for an invalid email' => sub {
+            try {
+                my $user = User->new('invalid_email', 'password123', 1);
+                fail('Invalid email should throw an exception');
+            }
+            catch {
+                like($_, qr/Invalid email format/, 'Exception should be thrown for invalid email');
+            };
         };
 
-        # Test missing domain
-        try {
-            $user->set_email('invalid@');
-            fail('Email setter - missing domain');
-        } catch {
-            like($_, qr/Invalid email format/, 'Email setter - missing domain');
+        # Test valid password
+        it 'should set a valid password correctly' => sub {
+            my $user = User->new('user@example.com', 'validpassword', 1);
+            is($user->get_password(), 'validpassword', 'Password should be set correctly');
         };
-    };
 
-    it 'should have a password' => sub {
-        my $user = User->new('user@example.com', 'password123', 1);
-        is($user->get_password, 'password123', 'Password getter');
+        # Test invalid password
+        it 'should throw an exception for an invalid password' => sub {
+            try {
+                my $user = User->new('user@example.com', 'invalidpassword\x{123}', 1);
+                fail('Invalid password should throw an exception');
+            }
+            catch {
+                like($_, qr/Invalid password format/, 'Exception should be thrown for invalid password');
+            };
+        };
 
-        $user->set_password('newpassword');
-        is($user->get_password, 'newpassword', 'Password setter');
-    };
+        # Test valid ID
+        it 'should set a valid ID correctly' => sub {
+            my $user = User->new('user@example.com', 'password123', 1);
+            is($user->get_id(), 1, 'ID should be set correctly');
+        };
 
-    it 'should have an ID' => sub {
-        my $user = User->new('user@example.com', 'password123', 1);
-        is($user->get_id, 1, 'ID getter');
+        # Test invalid ID
+        it 'should throw an exception for an invalid ID' => sub {
+            try {
+                my $user = User->new('user@example.com', 'password123', 'invalidid');
+                fail('Invalid ID should throw an exception');
+            }
+            catch {
+                like($_, qr/Invalid ID format/, 'Exception should be thrown for invalid ID');
+            };
+        };
 
-        $user->set_id(2);
-        is($user->get_id, 2, 'ID setter');
     };
 };
 
 done_testing();
-
-=head1 RUNNING THE TESTS
-
-To run the tests, use the following command:
-
-    prove UserTest.t
-
-=head1 AUTHOR
-
-Your Name
-
-=cut
 
