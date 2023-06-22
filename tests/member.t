@@ -4,25 +4,25 @@ use Test::More;
 use Try::Tiny;
 
 use Cwd;
-use lib getcwd() . "/../models/";
-use lib "/home/sw-engineer/perl_projects/perl-team_management/models/";
-use User;
+use lib getcwd() . "/../model/";
+use lib "/home/sw-engineer/perl_projects/perl-team_management/model/";
+use Member;
 
 # Test constructor and getters
 sub test_constructor_and_getters {
-    my $user = User->new('user@example.com', 'password123');
+    my $member = Member->new('member@example.com', 'password123');
     
-    is($user->get_email(), 'user@example.com', 'Email getter returns correct value');
-    is($user->get_password(), 'password123', 'Password getter returns correct value');
-    #is($user->get_id(), 1, 'ID getter returns correct value');
+    is($member->get_email(), 'member@example.com', 'Email getter returns correct value');
+    is($member->get_password(), 'password123', 'Password getter returns correct value');
+    #is($member->get_id(), 1, 'ID getter returns correct value');
 }
 
 # Test email setter with valid email
 sub test_set_email_valid {
-    my $user = User->new();
+    my $member = Member->new();
     
     try {
-        $user->set_email('user@example.com');
+        $member->set_email('member@example.com');
         pass('Email setter accepted valid email');
     }
     catch {
@@ -32,10 +32,10 @@ sub test_set_email_valid {
 
 # Test email setter with invalid email
 sub test_set_email_invalid {
-    my $user = User->new();
+    my $member = Member->new();
     
     try {
-        $user->set_email('invalid_email');
+        $member->set_email('invalid_email');
         fail('Email setter accepted invalid email');
     }
     catch {
@@ -45,10 +45,10 @@ sub test_set_email_invalid {
 
 # Test password setter with valid password
 sub test_set_password_valid {
-    my $user = User->new();
+    my $member = Member->new();
     
     try {
-        $user->set_password('newpassword');
+        $member->set_password('newpassword');
         pass('Password setter accepted valid password');
     }
     catch {
@@ -58,10 +58,10 @@ sub test_set_password_valid {
 
 # Test password setter with invalid password
 sub test_set_password_invalid {
-    my $user = User->new();
+    my $member = Member->new();
     
     try {
-        $user->set_password('pass');
+        $member->set_password('pass');
         fail('Password setter accepted invalid password');
     }
     catch {
@@ -71,10 +71,10 @@ sub test_set_password_invalid {
 
 # Test id setter with valid id
 sub test_set_id_valid {
-    my $user = User->new();
+    my $member = Member->new();
     
     try {
-        $user->set_id(2);
+        $member->set_id(2);
         pass('ID setter accepted valid ID');
     }
     catch {
@@ -84,10 +84,10 @@ sub test_set_id_valid {
 
 # Test id setter with invalid id
 sub test_set_id_invalid {
-    my $user = User->new();
+    my $member = Member->new();
     
     try {
-        $user->set_id('two');
+        $member->set_id('two');
         fail('ID setter accepted invalid ID');
     }
     catch {

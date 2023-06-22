@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Admin Panel</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
+[% INCLUDE header.tmpl FILTER trim %]
 <body>
-    <h1>Welcome to the Admin Panel [% vars.usermail  %]</h1>
+    <h1>Welcome to the Admin Panel [% vars.userMail  %]</h1>
     <nav>
         <ul>
-            <li><a href="/admin/teams">Teams</a></li>
-            <li><a href="/admin/roles">Roles</a></li>
-            <li><a href="/admin/users">Users</a></li>
+            <li><a href="/admin_panel?action=logged_in_member">Logged in Member Data</a></li>
+            <li><a href="/admin_panel?action=teams">Teams</a></li>
+            <li><a href="/admin_panel?action=team_roles">Roles</a></li>
+            <li><a href="/admin_panel?action=team_members">Team-Members</a></li>
+            <li><a href="/admin_panel?action=all_members">All-Members</a></li>
         </ul>
     </nav>
     <div class="content">

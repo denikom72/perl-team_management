@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS team_members (
   team_id INTEGER NOT NULL,
   name TEXT NOT NULL,
   email TEXT NOT NULL,
+  --password BLOB NOT NULL,
+  password TEXT NOT NULL,
   role_id INTEGER NOT NULL,
   FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE,
   FOREIGN KEY (role_id) REFERENCES team_roles (id) ON DELETE CASCADE
@@ -24,15 +26,10 @@ CREATE TABLE IF NOT EXISTS team_roles (
 );
 
 -- Create the users table
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL,
-    --password BLOB NOT NULL
-    password TEXT NOT NULL
-);
-
 -- Insert a default user with hashed password
 -- INSERT INTO users (username, password) VALUES ('admin', '5f4dcc3b5aa765d61d8327deb882cf99');
-INSERT INTO users (username, password) VALUES ('admin', 'password');
+INSERT INTO teams (name, description) VALUES('No_Team', "No_Team is for members which aren't assigned to a team yet");
+INSERT INTO team_roles (name, description) VALUES('No_Role', "No_Role is for a member which doesn't get a role yet");
+INSERT INTO team_members ( role_id ,team_id, name, email, password) VALUES ( 1, 1, 'Popov', 'admin@foo.com', 'password');
 
 

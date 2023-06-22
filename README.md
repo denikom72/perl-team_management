@@ -43,7 +43,7 @@ Structure
 
     app.psgi: PSGI entry point that connects the application to the web server.
     controllers/: Contains the controller modules that handle the application logic.
-    models/: Contains the model modules that interact with the data.
+    model/: Contains the model modules that interact with the data.
     views/: Contains the view templates that define the HTML output.
     lib/: Contains additional Perl modules used by the application.
     public/: Contains static files such as CSS and JavaScript.

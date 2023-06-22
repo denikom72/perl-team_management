@@ -1,9 +1,17 @@
 [% INCLUDE header.tmpl %]
+[% USE Dumper %]
 <body>
   <div class="container">
-    <h1>Team Members</h1>
+     <h1>[% vars.team_name %]</h1>
+     <h2>Team Members</h2>
+
+	[% FOR item IN vars.team_members %]
+		<p>[% item.get_id  %] - [% item.get_name  %] - [% item.get_email  %] - [% item.get_member_role  %] - [% item.get_member_team  %]</p>
+	[% END %]
+     	
+		<p>[% vars.team_list  %]</p>
     <!-- Team member management content -->
-    [% content %]
+    [% vars.content %]
   </div>
 </body>
 </html>

@@ -11,6 +11,8 @@
         <label for="password">Password</label>
         <input type="password" id="password" name="password" class="form-input" required>
       </div>
+
+        <input type="hidden" name="SEC" class="form-input" value = "[% vars.csrf_token  %]" />
       <button type="submit" class="btn">Login</button>
     </form>
   </div>

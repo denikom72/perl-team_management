@@ -1,6 +1,7 @@
 requires 'Plack', '>= 1.0047';
 requires 'Starman', '>= 0.4014';
 requires 'CGI';
+requires 'CGI::Simple';
 requires 'CGI::Session';
 requires 'DBI';
 requires 'DBD::SQLite';
@@ -17,5 +18,6 @@ requires 'Plack::Session';
 requires 'Devel::hdb';
 requires 'Test::More';
 requires 'Test::Exception';
-requires 'Cucumber::Load';
+#requires 'Test::BDD::Cucumber::Load';
 requires 'Test::BDD::Cucumber::StepFile';
+requires 'Plack::Middleware::CSRFBlock';
