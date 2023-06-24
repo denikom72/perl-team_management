@@ -50,22 +50,21 @@ sub new {
         _id       => undef,
     };
 
-
-
     bless $self, $class;
-
-
-    try {
-	if( defined $data ){
-           $self->set_email( $data->{email} );
-	   #$self->set_name( $data->{name} );
-       	   $self->set_password( $data->{password} );
-	}
+    # Simulate "new()" overload
+    if( defined $data ){
+	    try {
+		    #$self->set_id( $data->{member_id} ) if defined;
+		    #$self->set_role( $data->{member_role} ) if defined;
+		    #$self->set_role( $data->{member_team} ) if defined;
+	           $self->set_email( $data->{member_email} ) if defined;
+		   #$self->set_name( $data->{member_name} ) if defined;
+	       	   $self->set_password( $data->{password} ) if defined;
+	    }
+	    catch {
+	        croak("Error creating member: $_");
+	    };
     }
-    catch {
-        croak("Error creating member: $_");
-    };
-
     return $self;
 }
 
