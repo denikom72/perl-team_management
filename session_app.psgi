@@ -17,6 +17,9 @@ use MemberDAO;
 use TeamDTO;
 use TeamDAO;
 
+
+use TeamRoleDAO;
+
 use Database; 
 
 
@@ -45,7 +48,8 @@ my %methods = (
 	team_members => \&team_members,
 	team_roles => \&team_roles,
 	teams => \&teams,
-	logged_in_member => \&logged_in_member	
+	logged_in_member => \&logged_in_member,
+	all_members => \&all_members	
 );
 
 #### END OF RBAC ####
@@ -60,7 +64,7 @@ sub logged_in_member {
 		#memberId => $memb->get_id,
 		memberTeam => $memb->get_member_team,
 		memberRole => $memb->get_member_role,
-		content => "<a href='/logout'>logout</a>"
+		content => "some content if necessary"
 	};
 
 }
@@ -77,7 +81,7 @@ sub teams {
 	return { 
 		
 		team_list => $team_list,
-                content => "<a href='/logout'>logout</a>"
+                content => "TODO : EVERY TEAM ITEM HAVE TO BIND A CLICK EVENT AND RESPONSE WITH ALL TEAM-MEMBERS"
 	};	
 
 };
@@ -89,35 +93,59 @@ sub team_members {
 	my $team_members;
 	
 	my $teamDTO = TeamDTO->new();
-	$teamDTO->set_name($args->{team_name});
+	#$teamDTO->set_name($args->{team_name});
 
-	$team_members = MemberDAO->new($db)->get_team_members( $teamDTO );
-	
-	print STDERR '\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n';
+	#$team_members = MemberDAO->new($db)->get_team_members( $teamDTO );
+	$team_members = MemberDAO->new($db)->get_team_members( $memb );
+
 	print STDERR Dumper $team_members;
-	#print STDERR Dumper $args;
-	print STDERR '\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n';
-	
-	
-	#map {
-	
-	#} @$team_members;
-
+	print STDERR "\nIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
 	return { 
 		
 		team_name => $teamDTO->get_name(),
 		team_members => $team_members,
-                content => "<a href='/logout'>logout</a>"
+                content => "some content if necessary"
 	};	
-	print STDERR "I AM INTO rolesRSSSSSSSSSSSSSSSSSSSSSSSS";
 };
 
 sub team_roles {
+	
+	my $team_roles = TeamRoleDAO->new($db)->get_roles;
+
+	return {
+		team_roles => $team_roles,
+                content => "TODO : EVERY ROLE HAVE TO HAS AN CLICK EVENT AND RESPONSE TO IT WITH THE DATA OF MEMBERS AND RIGHTS OF IT"
+	};
+
 	print STDERR "I AM INTO rolesRSSSSSSSSSSSSSSSSSSSSSSSS";
 	
 };
 
+sub all_members {
+	
+	my $args = shift;
+	
+	my $all_members;
+	
 
+	#$teamDTO->set_name($args->{team_name});
+
+	#$team_members = MemberDAO->new($db)->get_team_members( $teamDTO );
+	$all_members = MemberDAO->new($db)->get_all_members( $memb );
+
+	print STDERR Dumper $all_members;
+	print STDERR "\nIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
+	return { 
+		
+		member_email => $memb->get_email,
+		all_members => $all_members,
+                content => "some content if necessary"
+	};	
+};
+
+
+
+########## UNSESSIONED FRONTEND #################
 
 my $loginpage = sub {
     
@@ -160,7 +188,8 @@ my $logged_in_or_rejected = sub {
 #    my $is_valid = $req->method eq 'POST' && $req->param('csrf_token') eq $session->param('csrf_token');
     
     $memb = MemberDTO->new( { email => $req->param('username'), password => $req->param('password') } );
-    
+   print STDERR '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%';
+  print STDERR Dumper $memb; 
     my $memb_dao = MemberDAO->new( $db );
     
     $check_credentials = $memb_dao->check_member( $memb );
@@ -268,7 +297,7 @@ my $admin_panel_crud = sub {
 		$vars = $methods{$action}->();
 	}
 	
-	$tpl = $action . ".tmpl";
+	#$tpl = $action . ".tmpl";
 
         
 	print STDERR '????????????????????????????????????????????????????????';
@@ -277,7 +306,7 @@ my $admin_panel_crud = sub {
 	
 	my $template_context = $template->context;
         unless ( $template_context->template($tpl)->_is_cached ) { 
-             $template->process($tpl, { vars => $vars }, \$html) or die " Template processing failed: $template::ERROR";
+             $template->process($tpl, { vars => $vars, action => $action.'.tmpl' }, \$html) or die " Template processing failed: $template::ERROR";
         }
 
         $res->body($html);

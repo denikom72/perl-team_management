@@ -1,10 +1,10 @@
-[% INCLUDE header.tmpl %]
-<body>
   <div class="container">
     <h1>Team Roles</h1>
+
+	[% FOR item IN vars.team_roles %]
+		<p> [% item.name  %] - [% item.get_id %]</p>
+	[% END %]
     <!-- Team role management content -->
-    [% content %]
+    [% vars.content %]
   </div>
-</body>
-</html>
 

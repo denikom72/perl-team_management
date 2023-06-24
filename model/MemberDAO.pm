@@ -55,7 +55,8 @@ sub check_member {
     my $dbh = $self->{db}->get_dbh();
     my $query = "SELECT id FROM team_members WHERE email = ? AND password = ?";
     my $sth = $dbh->prepare($query);
-
+    print STDERR 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+	print STDERR Dumper $member;
     $sth->execute($member->get_email, $member->get_password);
 
     my $member_data = $sth->fetchrow_hashref;
@@ -177,8 +178,31 @@ sub delete_member {
     $sth->finish;
 }
 
+sub get_all_members {
+    my ($self, $member) = @_;
+
+    my $query = "SELECT * FROM team_members";
+
+    my $dbh   = $self->{db}->get_dbh();
+    my $sth = $dbh->prepare($query);
+    $sth->execute();
+    
+    my @members;
+    while (my $member_data = $sth->fetchrow_hashref) {
+	my $membDTO = MemberDTO->new( $member_data );
+	#$membDTO->set_data( $member_data );
+        push @members, $membDTO;
+    }
+    $sth->finish;
+
+    print SRDERR Dumper @members;
+    return \@members;
+
+}
+
 sub get_team_members {
-    my ($self, $team) = @_;
+    #my ($self, $team) = @_;
+    my ($self, $member) = @_;
 
     my $query = "SELECT 
     			tm.id AS member_id,
@@ -197,11 +221,12 @@ sub get_team_members {
 			teams AS t ON t.id = tm.team_id
 		
 		WHERE 
-			t.name = ?";
+			tm.id = ?";
 
     my $dbh   = $self->{db}->get_dbh();
     my $sth = $dbh->prepare($query);
-    $sth->execute($team->get_name);
+    $sth->execute($member->get_id);
+    #$sth->execute(1);
     my @members;
     while (my $member_data = $sth->fetchrow_hashref) {
 	my $membDTO = MemberDTO->new();
@@ -209,6 +234,8 @@ sub get_team_members {
         push @members, $membDTO;
     }
     $sth->finish;
+
+    print SRDERR Dumper @members;
     return \@members;
 }
 

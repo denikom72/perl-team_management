@@ -57,9 +57,9 @@ sub new {
 		    #$self->set_id( $data->{member_id} ) if defined;
 		    #$self->set_role( $data->{member_role} ) if defined;
 		    #$self->set_role( $data->{member_team} ) if defined;
-	           $self->set_email( $data->{member_email} ) if defined;
+	           $self->set_email( $data->{member_email} ); # if defined;
 		   #$self->set_name( $data->{member_name} ) if defined;
-	       	   $self->set_password( $data->{password} ) if defined;
+	       	   $self->set_password( $data->{password} ); # if defined;
 	    }
 	    catch {
 	        croak("Error creating member: $_");

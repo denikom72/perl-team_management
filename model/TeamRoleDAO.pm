@@ -1,46 +1,46 @@
-package TeamDAO;
+package TeamRoleDAO;
 
 use strict;
 use warnings;
 use lib "model";
-use TeamDTO;
+use TeamRoleDTO;
 
 =head1 NAME
 
-TeamDAO - Data Access Object for managing teams
+TeamRoleDAO - Data Access Object for managing team_roles
 
 =head1 SYNOPSIS
 
-  use TeamDAO;
+  use TeamRoleDAO;
 
-  # Create a TeamDAO instance
-  my $team_dao = TeamDAO->new($db);
+  # Create a TeamRoleDAO instance
+  my $role_dao = TeamRoleDAO->new($db);
 
-  # Retrieve teams
-  my $teams_ref = $team_dao->get_teams();
+  # Retrieve team_roles
+  my $team_roles_ref = $role_dao->get_team_roles();
 
-  # Process the teams data
-  foreach my $team (@$teams_ref) {
-      # Do something with the team data
+  # Process the team_roles data
+  foreach my $role (@$team_roles_ref) {
+      # Do something with the role data
   }
 
 
 =head1 DESCRIPTION
 
-The TeamDAO module provides an interface for interacting with the teams database table.
+The TeamRoleDAO module provides an interface for interacting with the team_roles database table.
 
 =head1 METHODS
 
 =head2 new($db)
 
-Creates a new TeamDAO object.
+Creates a new TeamRoleDAO object.
 
 
-=head2 get_teams()
+=head2 get_team_roles()
 
-Retrieves all teams from the teams table.
+Retrieves all team_roles from the team_roles table.
 
-Returns an array reference containing team data.
+Returns an array reference containing role data.
 
 =head1 AUTHOR
 
@@ -60,21 +60,27 @@ sub new {
 }
 
 
-sub get_teams {
+sub get_roles {
     my ($self ) = @_;
 
-    my $query = "SELECT * FROM teams";
+    my $query = "SELECT * FROM team_roles";
     my $dbh   = $self->{db}->get_dbh();
     my $sth = $dbh->prepare($query);
     $sth->execute();
-    my @teams;
-    while (my $team_data = $sth->fetchrow_hashref) {
-        push @teams, TeamDTO->new()->set_data($team_data);
+    
+    my @team_roles;
+    
+    while (my $role_data = $sth->fetchrow_hashref) {
+        
+	my $team_role = TeamRoleDTO->new();
+	$team_role->set_data($role_data);
+	push @team_roles, $team_role;
     }
+    
     $sth->finish;
 
-    return \@teams;
+    return \@team_roles;
 }
 
-1;    # End of TeamDAO module
+1;    # End of TeamRoleDAO module
 

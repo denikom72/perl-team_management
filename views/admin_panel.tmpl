@@ -11,8 +11,13 @@
         </ul>
     </nav>
     <div class="content">
-        [% vars.content %]
+        <a href='/logout'>logout</a>
     </div>
+	[% IF action %]	
+		[% INCLUDE "$action" FILTER trim %]
+	[% END %]
+
+
 </body>
 </html>
 

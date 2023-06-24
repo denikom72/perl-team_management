@@ -1,5 +1,3 @@
-[% INCLUDE header.tmpl %]
-<body>
   <div class="container">
     <h1>Teams</h1>
 	<ul>
@@ -8,12 +6,8 @@
 		<li><a href="admin_panel?action=team_members&team_name=No_Team">[% item  %]</a></li>
 	[% END %]
      	</ul>
-    <!-- Team member management content -->
-    [% content %]
     
     <!-- Team management content -->
     [% vars.content %]
   </div>
-</body>
-</html>
 
