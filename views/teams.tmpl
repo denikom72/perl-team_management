@@ -1,13 +1,11 @@
-  <div class="container">
-    <h1>Teams</h1>
-	<ul>
+<ul class="user-list">
 	[% FOR item IN vars.team_list %]
-		<!-- li><a href="admin_panel?action=team_members&team_name=[% item %]">[% item  %]</a></li -->
-		<li><a href="admin_panel?action=team_members&team_name=No_Team">[% item  %]</a></li>
+		<li>
+		   <input type="text" name="ID" placeholder="[% item.get_id %]" value="[% item.get_id %]" readonly>
+		   <input type="text" name="name" placeholder="[% item.get_name %]" >
+
+		    <input type="checkbox" name="active">
+		</li>
 	[% END %]
-     	</ul>
-    
-    <!-- Team management content -->
-    [% vars.content %]
-  </div>
+</ul>
 

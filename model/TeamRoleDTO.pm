@@ -2,6 +2,7 @@ package TeamRoleDTO;
 
 use strict;
 use warnings;
+use Data::Dumper;
 
 =head1 NAME
 
@@ -84,7 +85,11 @@ Denis Komnenovic
 =cut
 
 sub new {
-    my ($class) = @_;
+    my ($class, $data) = @_;
+    
+    print STDERR "xxxx__________===================================================\n";
+    print STDERR Dumper $data;
+    print STDERR "===================================================\n";
     
     my $self = {
         id   => undef,
@@ -92,6 +97,11 @@ sub new {
     };
     
     bless $self, $class;
+    
+    $self->set_id($data->{id})     if exists $data->{id};
+    $self->set_id($data->{ID})     if exists $data->{ID};
+    $self->set_name($data->{name}) if exists $data->{name};
+    
     return $self;
 }
 

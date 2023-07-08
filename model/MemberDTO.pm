@@ -42,29 +42,39 @@ use Try::Tiny;
 use Data::Dumper;
 sub new {
     my ($class, $data ) = @_;
-
+    print STDERR "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n";
+    print STDERR Dumper $data;
     my $self = {
         _email    => undef,
         _password => undef,
 	_name	  => undef,
         _id       => undef,
+        _ID       => undef,
     };
 
     bless $self, $class;
+    
     # Simulate "new()" overload
-    if( defined $data ){
-	    try {
-		    #$self->set_id( $data->{member_id} ) if defined;
-		    #$self->set_role( $data->{member_role} ) if defined;
-		    #$self->set_role( $data->{member_team} ) if defined;
-	           $self->set_email( $data->{member_email} ); # if defined;
-		   #$self->set_name( $data->{member_name} ) if defined;
-	       	   $self->set_password( $data->{password} ); # if defined;
-	    }
-	    catch {
-	        croak("Error creating member: $_");
-	    };
-    }
+    try {
+    
+	$self->set_id( $data->{id} ) if defined $data->{id};
+	$self->set_id( $data->{member_id} ) if defined $data->{member_id};
+	$self->set_id( $data->{ID} ) if defined $data->{ID};
+	$self->set_member_role( $data->{member_role} ) if defined $data->{member_role};
+	$self->set_member_team( $data->{member_team} ) if defined $data->{member_team};
+	$self->set_member_role( $data->{role} ) if defined $data->{role};
+	$self->set_member_team( $data->{team} ) if defined $data->{team};
+	$self->set_email( $data->{email} ) if defined $data->{email};
+	$self->set_name( $data->{name} ) if defined $data->{name};
+	$self->set_password( $data->{password} ) if defined $data->{password};
+    } catch {
+	croak("Error creating member: $_");
+    };
+   
+    print STDERR "__________________________________________\n";	
+    print STDERR Dumper $self;
+
+
     return $self;
 }
 
@@ -80,8 +90,8 @@ Sets the email of the member. Performs a plausibility check to ensure the email 
 
 sub set_email {
     my ($self, $email) = @_;
-    #if ($email =~ /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/) {
-    if ($email) {
+    if ($email =~ /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/) {
+    #if ($email) {
         $self->{_email} = $email;
     }
     else {
@@ -167,47 +177,33 @@ sub get_id {
 
 sub set_id {
     my ($self, $id) = @_;
-
-    if ($id =~ /^[1-9]\d*$/) {
+    
+    print STDERR $id . " WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW";
+    
+    #$id = sprintf("%n", $id);
+    #if ($id =~ /^[1-9]*$/) {
         $self->{_id} = $id;
-    }
-    else {
-        croak("Invalid ID format");
-    }
+	#}
+	#else {
+	#croak("Invalid ID format");
+	#}
 }
-
-
-#sub get_data {
-#    my ($self) = @_;
-#    return $self;
-#}
 
 
 sub set_data {
     my ($self, $data) = @_;
     
-	print STDERR 'QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\n';
-	print STDERR Dumper $data;
-	print STDERR 'QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\n';
     try {
-	if( defined $data ){
-
-	print STDERR 'QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\n';
-	print STDERR Dumper $data;
-	print STDERR 'QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\n';
-	   $self->set_id( $data->{member_id} );
-           $self->set_email( $data->{member_email} );
-           $self->set_name( $data->{member_name} );
-           $self->set_member_role( $data->{member_role_name} );
-           $self->set_member_team( $data->{member_team_name} );
-	   #$self->set_password( $data->{password} );
-	}
-    }
-    catch {
-        croak("Error creating member: $_");
+	$self->set_id( $data->{member_id} ) if defined $data->{member_id};
+	$self->set_member_role( $data->{member_role} ) if defined $data->{member_role};
+	$self->set_member_team( $data->{member_team} ) if defined $data->{member_team};
+	$self->set_email( $data->{email} ) if defined $data->{email};
+	$self->set_name( $data->{name} ) if defined $data->{name};
+	$self->set_password( $data->{password} ) if defined $data->{password};
+    } catch {
+	croak("Error creating member: $_");
     };
 
-    #$self;
 }
 
 1;

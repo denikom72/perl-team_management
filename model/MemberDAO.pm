@@ -55,16 +55,13 @@ sub check_member {
     my $dbh = $self->{db}->get_dbh();
     my $query = "SELECT id FROM team_members WHERE email = ? AND password = ?";
     my $sth = $dbh->prepare($query);
-    print STDERR 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
-	print STDERR Dumper $member;
+    
     $sth->execute($member->get_email, $member->get_password);
 
     my $member_data = $sth->fetchrow_hashref;
     
     $sth->finish;
 
-    print STDERR "XXXXXXX---------------------------------------------";
-    print STDERR  $member_data;
     $member->set_id( $member_data->{id} );
 
     $member;
@@ -85,13 +82,64 @@ Creates a new member record in the database.
 
 sub create_member {
     my ($self, $member) = @_;
-
+#	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
+#	print STDERR Dumper $member;
+#	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
     my $dbh = $self->{db}->get_dbh();
-    my $query = "INSERT INTO team_members (name, email) VALUES (?, ?)";
+    my $query = "INSERT INTO team_members 
+    			(team_id, name, email, password, role_id)
+		SELECT 
+			teams.id, ?, ?, ?, team_roles.id
+		FROM 
+			teams, team_roles
+		WHERE 
+			teams.name = ? AND team_roles.name = ?";
+    
     my $sth = $dbh->prepare($query);
-    $sth->execute( $member->get_name, $member->get_email );
+    #$sth->execute( $member->get_name, $member->get_email, "password22" );
+    $sth->execute( $member->get_name, $member->get_email, "password22", $member->get_member_team, $member->get_member_role );
     $sth->finish;
 }
+
+
+sub delete_member {
+    my ($self, $member) = @_;
+#	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
+#	print STDERR Dumper $member;
+#	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
+    my $dbh = $self->{db}->get_dbh();
+    my $query = "DELETE FROM team_members WHERE id = ?";
+    
+    my $sth = $dbh->prepare($query);
+    $sth->execute( $member->get_id );
+    $sth->finish;
+}
+
+
+sub update_member {
+    my ($self, $member) = @_;
+#	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
+#	print STDERR Dumper $member;
+#	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
+    my $dbh = $self->{db}->get_dbh();
+    my $query = "UPDATE 
+    			team_members
+		SET 
+    			name = ?,
+    			email = ?,
+			team_id = (SELECT id FROM teams WHERE name = ?),
+    			role_id = (SELECT id FROM team_roles WHERE name = ?)
+		WHERE 
+			id = ?;
+			
+    ";
+    
+    my $sth = $dbh->prepare($query);
+    $sth->execute( $member->get_name, $member->get_email, $member->get_member_team, $member->get_member_role, $member->get_id );
+    $sth->finish;
+}
+
+
 
 =head2 pull_member_by_id($member_id)
 
@@ -150,15 +198,15 @@ Updates a member record in the database.
 
 =cut
 
-sub update_member {
-    my ($self, $member) = @_;
-
-    my $dbh = $self->{db}->get_dbh();
-    my $query = "UPDATE team_members SET name = ?, email = ? WHERE id = ?";
-    my $sth = $dbh->prepare($query);
-    $sth->execute($member->get_name, $member->get_email, $member->get_id);
-    $sth->finish;
-}
+#sub update_member {
+#    my ($self, $member) = @_;
+#
+#    my $dbh = $self->{db}->get_dbh();
+#    my $query = "UPDATE team_members SET name = ?, email = ? WHERE id = ?";
+#    my $sth = $dbh->prepare($query);
+#    $sth->execute($member->get_name, $member->get_email, $member->get_id);
+#    $sth->finish;
+#}
 
 =head2 delete_member($member_id)
 
@@ -181,7 +229,22 @@ sub delete_member {
 sub get_all_members {
     my ($self, $member) = @_;
 
-    my $query = "SELECT * FROM team_members";
+    my $query = "SELECT 
+    			
+    			tm.id AS member_id,
+			tm.name AS name,
+			tm.email AS email,
+			tr.name AS member_role,
+			t.name AS member_team
+		FROM 
+		 	team_members tm
+			
+		JOIN 
+			
+			team_roles tr ON tm.role_id = tr.id
+		JOIN 
+			
+			teams t ON t.id = tm.team_id";
 
     my $dbh   = $self->{db}->get_dbh();
     my $sth = $dbh->prepare($query);
@@ -189,13 +252,15 @@ sub get_all_members {
     
     my @members;
     while (my $member_data = $sth->fetchrow_hashref) {
-	my $membDTO = MemberDTO->new( $member_data );
-	#$membDTO->set_data( $member_data );
-        push @members, $membDTO;
+	    
+	    push @members, MemberDTO->new( $member_data );
     }
     $sth->finish;
+    
+    print STDERR "==========================================================\n";
+    print STDERR Dumper \@members;
 
-    print SRDERR Dumper @members;
+    print STDERR "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}\n";
     return \@members;
 
 }
@@ -206,10 +271,10 @@ sub get_team_members {
 
     my $query = "SELECT 
     			tm.id AS member_id,
-			tm.name AS member_name,
-			tm.email AS member_email,
-			tr.name AS member_role_name,
-			t.name AS member_team_name
+			tm.name AS name,
+			tm.email AS email,
+			tr.name AS member_role,
+			t.name AS member_team
 		 FROM 
 		 	team_members AS tm
 			
@@ -226,16 +291,16 @@ sub get_team_members {
     my $dbh   = $self->{db}->get_dbh();
     my $sth = $dbh->prepare($query);
     $sth->execute($member->get_id);
-    #$sth->execute(1);
     my @members;
     while (my $member_data = $sth->fetchrow_hashref) {
-	my $membDTO = MemberDTO->new();
-	$membDTO->set_data( $member_data );
-        push @members, $membDTO;
+	    print STDERR Dumper $member_data;
+	    push @members, MemberDTO->new( $member_data );
     }
     $sth->finish;
 
-    print SRDERR Dumper @members;
+    print STDERR "==========================================================\n";
+    print STDERR Dumper \@members;
+    
     return \@members;
 }
 

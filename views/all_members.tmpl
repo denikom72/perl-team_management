@@ -1,13 +1,39 @@
-[% USE Dumper %]
-<body>
-  <div class="container">
-     <h1>All Members</h1>
+<p>[% user.get_member_team  %]</p>
+
+
+	[% BLOCK sel %]
+       		<select name="team"> 
+		[% FOR t_item IN vars.teams %]
+		      <option value="[% t_item.get_name %]" [% IF t_item.get_name == item.get_member_team %]selected[% END %]>[% t_item.get_name %]</option>
+		[% END %]
+		</select>
+	[% END %]
+	
+	[% BLOCK role %]
+       		<select name="role"> 
+		[% FOR r_item IN vars.roles %]
+		      <option value="[% r_item.get_name %]" [% IF r_item.get_name == item.get_member_role %]selected[% END %]   >[% r_item.get_name %]</option>
+		[% END %]
+		</select>
+	[% END %]
+
+	<ul class="user-list">
 
 	[% FOR item IN vars.all_members %]
-		<p>[% item.get_id  %] - [% item.get_name  %] - [% item.get_email  %] - [% item.get_member_role  %] - [% item.get_member_team  %]</p>
-	[% END %]
-     	
-    <!-- Team member management content -->
-    [% vars.content %]
-  </div>
+		<li>
+   			<input type="text" name="member_id" placeholder="[% item.get_id %]" value="[% item.get_id %]"  readonly >
+			<input type="text" name="email" value="[% item.get_email %]" placeholder="[% item.get_email %]" onclick="checkCheckbox(this.parentNode.querySelector('input[type=checkbox]'))">
+			<input type="text" name="name" value="[% item.get_name %]" placeholder="[% item.get_name %]" onclick="checkCheckbox(this.parentNode.querySelector('input[type=checkbox]'))">
+    
+
+
+
+			[% INCLUDE sel %]
+			[% INCLUDE role %]
+			
+
+	<input type="checkbox" name="active">
+</li>
+[% END %]
+	</ul>     	
 

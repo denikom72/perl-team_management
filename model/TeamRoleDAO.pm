@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use lib "model";
 use TeamRoleDTO;
+use Data::Dumper;
 
 =head1 NAME
 
@@ -80,6 +81,49 @@ sub get_roles {
     $sth->finish;
 
     return \@team_roles;
+}
+
+sub save_role {
+
+    my ($self, $role ) = @_;
+
+    #print STDERR "XXXXXXXXXXXXXXXXXXX===================================================\n";
+    #print STDERR Dumper $role;
+    #print STDERR "===================================================\n";
+    
+    my $query = " UPDATE team_roles SET name = ? WHERE id = ? ";
+    my $dbh   = $self->{db}->get_dbh();
+    my $sth = $dbh->prepare($query);
+    $sth->execute( $role->get_name, $role->get_id );
+}
+
+sub create_role {
+
+    my ($self, $role ) = @_;
+
+    
+    print STDERR "IIIIIIIIIIIIIIIIIIIIIIIIIIIIII===================================================\n";
+    print STDERR Dumper $role;
+    print STDERR "===================================================\n";
+    
+    my $query = " INSERT INTO team_roles ( name ) VALUES ( ? )";
+    my $dbh   = $self->{db}->get_dbh();
+    my $sth = $dbh->prepare($query);
+    $sth->execute( $role->get_name );
+}
+
+sub delete_role {
+
+    my ($self, $role ) = @_;
+
+    #print STDERR "XXXXXXXXXXXXXXXXXXX===================================================\n";
+    #print STDERR Dumper $role;
+    #print STDERR "===================================================\n";
+    
+    my $query = " DELETE FROM team_roles WHERE id = ? ";
+    my $dbh   = $self->{db}->get_dbh();
+    my $sth = $dbh->prepare($query);
+    $sth->execute( $role->get_id );
 }
 
 1;    # End of TeamRoleDAO module

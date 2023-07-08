@@ -1,15 +1,8 @@
 [% USE Dumper %]
-<body>
-  <div class="container">
-     <h1>[% vars.team_name %]</h1>
-     <h2>Team Members</h2>
-
-	[% FOR item IN vars.team_members %]
-		<p>[% item.get_id  %] - [% item.get_name  %] - [% item.get_email  %] - [% item.get_member_role  %] - [% item.get_member_team  %]</p>
-	[% END %]
-     	
-		<p>[% vars.team_list  %]</p>
-    <!-- Team member management content -->
-    [% vars.content %]
-  </div>
+    <nav>
+        <ul class="">
+            <li><a href="/admin_panel?action=team_members">Team-Members</a></li>
+            <li><a href="/admin_panel?action=all_members">All-Members</a></li>
+        </ul>
+    </nav>
 

@@ -2,7 +2,7 @@ package TeamDTO;
 
 use strict;
 use warnings;
-
+use Data::Dumper;
 =head1 NAME
 
 TeamDTO - Data Transfer Object for representing a team
@@ -84,14 +84,23 @@ Denis Komnenovic
 =cut
 
 sub new {
-    my ($class) = @_;
-    
+    my ($class, $data) = @_;
+    print STDERR "DTODTODTODTODTO";
+    print STDERR Dumper $data;
+
     my $self = {
         id   => undef,
         name => undef,
     };
     
     bless $self, $class;
+    
+    $self->set_id($data->{id})     if exists $data->{id};
+    $self->set_id($data->{ID})     if exists $data->{ID};
+    $self->set_name($data->{name}) if exists $data->{name};
+    
+    print STDERR "DTO__________________DTODTODTODTO";
+    print STDERR Dumper $self;
     return $self;
 }
 
@@ -106,7 +115,7 @@ sub set_id {
     my ($self, $id) = @_;
     
     # Perform plausibility check: ID must be a positive integer
-    die "Invalid ID: $id" unless defined $id && $id =~ /^[1-9]\d*$/;
+    #die "Invalid ID: $id" unless defined $id && $id =~ /^[1-9]\d*$/;
     
     $self->{id} = $id;
 }

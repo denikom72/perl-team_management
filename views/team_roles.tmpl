@@ -1,10 +1,33 @@
-  <div class="container">
-    <h1>Team Roles</h1>
+<ul class="user-list">
+
+
+	[% BLOCK act %]
+       		<select name="action"> 
+		[% FOR item IN vars.actions %]
+		      <option value="[% item.action_id %]">[% item.name %]</option>
+		[% END %]
+		</select>
+	[% END %]
+	
+	[% BLOCK role %]
+       		<select name="role"> 
+		[% FOR item IN vars.team_roles %]
+		      <option value="[% item.get_id %]">[% item.get_name %]</option>
+		[% END %]
+		</select>
+	[% END %]
 
 	[% FOR item IN vars.team_roles %]
-		<p> [% item.name  %] - [% item.get_id %]</p>
-	[% END %]
-    <!-- Team role management content -->
-    [% vars.content %]
-  </div>
+		<li>
+		   <input type="text" name="ID" id="ID_[% item.get_id %]" placeholder="[% item.get_id %]" value="[% item.get_id %]" readonly>
+		   <input type="text" name="name" id="rolename_[% item.get_id %]" placeholder="[% item.get_name %]">
 
+		   <input type="checkbox" name="active" />
+
+			[% INCLUDE act %]
+			
+			[% INCLUDE role %]
+
+		</li>
+	[% END %]
+</ul>

@@ -1,15 +1,36 @@
 [% USE Dumper %]
-<body>
-  <div class="container">
-     <h1>[% vars.team_name %]</h1>
-     <h2>Team Members</h2>
+	<ul class="user-list">
 
-	[% FOR item IN vars.team_members %]
-		<p>[% item.get_id  %] - [% item.get_name  %] - [% item.get_email  %] - [% item.get_member_role  %] - [% item.get_member_team  %]</p>
+	[% BLOCK sel %]
+       		<select name="team"> 
+		[% FOR item IN vars.teams %]
+		      <option value="get_id_[% item.get_id %]" [% IF item.get_name == user.get_member_team %]selected[% END %]>[% item.get_name %]</option>
+		[% END %]
+		</select>
 	[% END %]
-     	
-		<p>[% vars.team_list  %]</p>
-    <!-- Team member management content -->
-    [% vars.content %]
-  </div>
+	
+	[% BLOCK role %]
+       		<select name="role"> 
+		[% FOR item IN vars.roles %]
+		      <option value="get_id_[% item.get_id %]" [% IF item.get_name == user.get_member_role %]selected[% END %]   >[% item.get_name %]</option>
+		[% END %]
+		</select>
+	[% END %]
+	[% FOR item IN vars.team_members %]
+		<li>
+		   <input type="text" name="ID" placeholder="[% item.get_id %]" readonly>
+		   <input type="text" name="email" placeholder="[% item.get_email %]">
+		   <input type="text" name="name" placeholder="[% item.get_name %]">
+		   
+			[% INCLUDE sel %]
+			
+			[% INCLUDE role %]
+
+		    
+		    <input type="checkbox" name="active">
+		   <!-- input type="text" name="ID" placeholder="[% item.get_member_role %]" readonly -->
+		   <!-- input type="text" name="ID" placeholder="[% item.get_member_team %]" readonly -->
+		</li>
+	[% END %]
+     	</ul>
 

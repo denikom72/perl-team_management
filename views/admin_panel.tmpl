@@ -1,22 +1,55 @@
 [% INCLUDE header.tmpl FILTER trim %]
 <body>
-    <h1>Welcome to the Admin Panel [% vars.userMail  %]</h1>
-    <nav>
-        <ul>
-            <li><a href="/admin_panel?action=logged_in_member">Logged in Member Data</a></li>
-            <li><a href="/admin_panel?action=teams">Teams</a></li>
-            <li><a href="/admin_panel?action=team_roles">Roles</a></li>
-            <li><a href="/admin_panel?action=team_members">Team-Members</a></li>
+    <div style="display:flex; align-items:center;"><h1>Team-Management [% site %]</h1><div><ul class="nav"><li>&nbsp;</li><li><a href="/admin_panel?action=logged_in_member">[% vars.user.get_email  %]</a></li></ul></div></div>
+    
+       <form action="/admin_panel?action=[% submit_action %]" method="post">
+	<input type="hidden" name="action" value="[% submit_action %]" />
+	<nav>
+        <ul class="nav">
+            <li class="navi"><a href="/admin_panel?action=teams">Teams</a></li>
+            <li class="navi"><a href="/admin_panel?action=team_roles">Roles</a></li>
+	
             <li><a href="/admin_panel?action=all_members">All-Members</a></li>
+            <li><a href="/admin_panel?action=team_members">Team-Members</a></li>
+		[% IF action AND action != 'members.tmpl'  %] 
+			[% INCLUDE CRUD.tmpl %]
+	        [% END %]
+	    <li><a href='/logout'>logout</a></li>
         </ul>
     </nav>
     <div class="content">
-        <a href='/logout'>logout</a>
+    	<div class="search-container">
+    		<input id="search-input" class="search-input" type="text" placeholder="Search" onkeyup="search()">
+  	</div>
+
+  	<!-- Your other HTML content -->
+
+  	<script>
+    		function search() {
+      			var searchInput = document.getElementById('search-input').value;
+      
+      			if (searchInput.length >= 3) {
+        			// Start searching or perform search-related operations here
+        			console.log('Search:', searchInput);
+      			}
+    		}
+  	</script>
     </div>
 	[% IF action %]	
-		[% INCLUDE "$action" FILTER trim %]
+		[% INCLUDE "$action" %]
+		</form>
 	[% END %]
 
+  <script>
+    document.querySelector('.toggle-button').addEventListener('click', function() {
+      document.querySelector('.nav').classList.toggle('collapsed');
+    });
+
+  function checkCheckbox(checkbox) {
+    checkbox.checked = true;
+  }
+
+  </script>
 
 </body>
 </html>

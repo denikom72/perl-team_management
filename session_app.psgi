@@ -46,10 +46,20 @@ my $template = Template->new({
 
 my %methods = (
 	team_members => \&team_members,
+	all_members => \&all_members,	
 	team_roles => \&team_roles,
 	teams => \&teams,
 	logged_in_member => \&logged_in_member,
-	all_members => \&all_members	
+	members => \&members,	
+	create_teams => \&create_teams,	
+	delete_teams => \&delete_teams,	
+	update_teams => \&update_teams,	
+	create_team_roles => \&create_roles,	
+	delete_team_roles => \&delete_roles,
+	update_team_roles => \&update_roles,
+	create_all_members => \&create_members,
+	delete_all_members => \&delete_members,
+	update_all_members => \&update_members
 );
 
 #### END OF RBAC ####
@@ -59,6 +69,7 @@ sub logged_in_member {
 	$memb = new MemberDAO($db)->pull_member_by_id( $memb );
 			
         return { 
+		userMail => $memb->get_email, 
 		memberMail => $memb->get_email,
 		memberName => $memb->get_name,
 		#memberId => $memb->get_id,
@@ -70,18 +81,259 @@ sub logged_in_member {
 }
 
 
+sub members {
+	
+	return { 
+		
+		userMail => $memb->get_email, 
+                content => "TODO : EVERY TEAM ITEM HAVE TO BIND A CLICK EVENT AND RESPONSE WITH ALL TEAM-MEMBERS"
+	};	
+
+};
+
+sub create_members {
+
+	my $args = shift;
+	my ( $member_list, $teams, $roles );
+
+	my $memberDAO = MemberDAO->new($db);
+	
+	map {
+		my $data = $_;
+		if( defined $data->{active} && $data->{active} eq 'on' ){
+					
+			$memberDAO->create_member( MemberDTO->new( $data ) ); 
+		}
+	} @{ $args->{post} };
+	
+	$member_list = $memberDAO->get_all_members( $memb );
+	
+	$teams = TeamDAO->new($db)->get_teams;	
+	$roles = TeamRoleDAO->new($db)->get_roles;	
+	
+	return { 
+		
+		user => $memb, 
+		member_email => $memb->get_email,
+		teams => $teams,
+		roles => $roles,
+		all_members => $member_list,
+		action => 'all_members',
+		#content => "some content if necessary"
+	};	
+}
+
+sub delete_members {
+
+	my $args = shift;
+	my ( $member_list, $teams, $roles );
+
+	my $memberDAO = MemberDAO->new($db);
+	
+	map {
+		my $data = $_;
+		if( defined $data->{active} && $data->{active} eq 'on' ){
+					
+			$memberDAO->delete_member( MemberDTO->new( $data ) ); 
+		}
+	} @{ $args->{post} };
+	
+	$member_list = $memberDAO->get_all_members( $memb );
+	
+	$teams = TeamDAO->new($db)->get_teams;	
+	$roles = TeamRoleDAO->new($db)->get_roles;	
+	
+	return { 
+		
+		user => $memb, 
+		member_email => $memb->get_email,
+		teams => $teams,
+		roles => $roles,
+		all_members => $member_list,
+		action => 'all_members',
+		#content => "some content if necessary"
+	};	
+}
+
+
+sub update_members {
+
+	my $args = shift;
+	my ( $member_list, $teams, $roles );
+
+	my $memberDAO = MemberDAO->new($db);
+	
+	map {
+		my $data = $_;
+		if( defined $data->{active} && $data->{active} eq 'on' ){
+					
+			$memberDAO->update_member( MemberDTO->new( $data ) ); 
+		}
+	} @{ $args->{post} };
+	
+	$member_list = $memberDAO->get_all_members( $memb );
+	
+	$teams = TeamDAO->new($db)->get_teams;	
+	$roles = TeamRoleDAO->new($db)->get_roles;	
+	
+	return { 
+		
+		user => $memb, 
+		member_email => $memb->get_email,
+		teams => $teams,
+		roles => $roles,
+		all_members => $member_list,
+		action => 'all_members',
+		#content => "some content if necessary"
+	};	
+}
+
+
+
+sub create_teams {
+
+	my $args = shift;
+	my $team_list;
+	
+	print STDERR "333333333333333333333333333333333333333333333\n";
+	print STDERR Dumper $args;
+
+	print STDERR "333333333333333333333333333333333333333333333\n";
+
+	my $teamDAO = TeamDAO->new($db);
+	
+	map {
+		my $data = $_;
+		if( defined $data->{active} && $data->{active} eq 'on' ){
+					
+			$teamDAO->create_teams( TeamDTO->new( $data ) ); 
+		}
+	} @{ $args->{post} };
+	
+	$team_list = $teamDAO->get_teams();
+	
+	return {
+		
+		user => $memb, 
+		team_list => $team_list,
+		action => 'teams'
+	}	
+}
+
+sub delete_teams {
+
+	my $args = shift;
+	my $team_list;
+
+	my $teamDAO = TeamDAO->new($db);
+	
+	map {
+		#my $data = $_;
+		if( defined $_->{active} && $_->{active} eq 'on' ){
+			$teamDAO->delete_teams( TeamDTO->new( $_ ) ); 
+		}
+	} @{ $args->{post} };
+
+
+	return {
+		
+		user => $memb, 
+		team_list => $teamDAO->get_teams,
+		action => 'teams'
+	}	
+}
+
+sub update_teams {
+
+	my $args = shift;
+	my $team_list;
+
+	my $teamDAO = TeamDAO->new($db);
+	
+	map {
+		#my $data = $_;
+		if( defined $_->{active} && $_->{active} eq 'on' ){
+			$teamDAO->update_teams( TeamDTO->new( $_ ) ); 
+		}
+	} @{ $args->{post} };
+
+
+	return {
+		
+		user => $memb, 
+		team_list => $teamDAO->get_teams,
+		action => 'teams'
+	}	
+}
+
+sub update_roles {
+
+	my $args = shift;
+	my $roles;
+	
+	my $roleDAO = TeamRoleDAO->new( $db );
+
+	map {
+		if( defined $_->{active} && $_->{active} eq 'on' ){
+			$roleDAO->save_role( TeamRoleDTO->new( $_ ) ); 
+		}
+	} @{ $args->{post} };
+
+	$roles = team_roles(); 
+	$roles->{'action'} = 'team_roles';
+	$roles;
+}
+
+sub delete_roles {
+
+	my $args = shift;
+	my $roles;
+	
+	my $roleDAO = TeamRoleDAO->new( $db );
+
+	map {
+		#my $data = $_;
+		if( defined $_->{active} && $_->{active} eq 'on' ){
+			$roleDAO->delete_role( TeamRoleDTO->new( $_ ) ); 
+		}
+	} @{ $args->{post} };
+	
+	# DB is singleton, so it doesn't matter how many instances in other class are tried to launch
+	$roles = team_roles(); 
+	$roles->{'action'} = 'team_roles';
+	$roles;
+}
+
+sub create_roles {
+
+	my $args = shift;
+	my $roles;
+
+	my $teamRoleDAO = TeamRoleDAO->new($db);
+	
+	map {
+		my $data = $_;
+		if( defined $data->{active} && $data->{active} eq 'on' ){
+					
+			$teamRoleDAO->create_role( TeamRoleDTO->new( $data ) ); 
+		}
+	} @{ $args->{post} };
+	
+	$roles = team_roles(); 
+	$roles->{'action'} = 'team_roles';
+	
+	$roles;
+}
+
+
 sub teams {
 	my $team_list;
 	$team_list = TeamDAO->new($db)->get_teams();
 	
-	print STDERR '\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n';
-	print STDERR Dumper $team_list;
-	print STDERR '\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n';
-	
 	return { 
 		
+		user => $memb, 
 		team_list => $team_list,
-                content => "TODO : EVERY TEAM ITEM HAVE TO BIND A CLICK EVENT AND RESPONSE WITH ALL TEAM-MEMBERS"
 	};	
 
 };
@@ -90,19 +342,27 @@ sub team_members {
 	
 	my $args = shift;
 	
-	my $team_members;
+	my ( $team_members, $teams, $roles );
 	
 	my $teamDTO = TeamDTO->new();
 	#$teamDTO->set_name($args->{team_name});
 
 	#$team_members = MemberDAO->new($db)->get_team_members( $teamDTO );
 	$team_members = MemberDAO->new($db)->get_team_members( $memb );
+	$teams = TeamDAO->new($db)->get_teams;	
+	$roles = TeamRoleDAO->new($db)->get_roles;	
+	
+	#### MOCK DATA ###
+	#my $teams = [ { get_id => 1, get_name => "No_Team" }, { get_id => 2, get_name => "team2" } ];
+	#my $roles = [ { get_id => 1, get_name => "role1" }, { get_id => 2, get_name => "No_Role" } ];
 
-	print STDERR Dumper $team_members;
-	print STDERR "\nIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
+
 	return { 
 		
+		user => $memb, 
 		team_name => $teamDTO->get_name(),
+		teams => $teams,
+		roles => $roles,
 		team_members => $team_members,
                 content => "some content if necessary"
 	};	
@@ -110,14 +370,18 @@ sub team_members {
 
 sub team_roles {
 	
-	my $team_roles = TeamRoleDAO->new($db)->get_roles;
+	my $roles = TeamRoleDAO->new($db)->get_roles;
 
+	#### MOCK DATA ###
+	my $actions = [ { action_id => 1, name => "action11" }, { action_id => 2, name => "action2" } ];
+	#my $roles = [ { role_id => 1, name => "role1" }, { role_id => 2, name => "role2" } ];
+	
 	return {
-		team_roles => $team_roles,
-                content => "TODO : EVERY ROLE HAVE TO HAS AN CLICK EVENT AND RESPONSE TO IT WITH THE DATA OF MEMBERS AND RIGHTS OF IT"
+		user => $memb, 
+		team_roles => $roles,
+		actions => $actions,
+                content => "TODO : EVERY ROLE HAVE TO HAS AN CLICK EVENT AND RESPONSE TO IT RIGHTS OF IT. MEANS THE BOUNCE OF FEATURES/METHODS IT CAN USE ON OTHER ROLES - EXAMPLE, ROLE CAN CREATE USER WITH ROLE XY, BUT NOT WITH THE ROLE - ADMIN"
 	};
-
-	print STDERR "I AM INTO rolesRSSSSSSSSSSSSSSSSSSSSSSSS";
 	
 };
 
@@ -125,21 +389,27 @@ sub all_members {
 	
 	my $args = shift;
 	
-	my $all_members;
+	my ( $all_members, $teams, $roles );
 	
+	#print STDERR "==========================================================\n";
+	#print STDERR Dumper $all_members;
 
-	#$teamDTO->set_name($args->{team_name});
-
-	#$team_members = MemberDAO->new($db)->get_team_members( $teamDTO );
+	#### MOCK DATA ###
+	#my $teams = [ { get_id => 1, get_name => "No_Team" }, { get_id => 2, get_name => "team2" } ];
+	#my $roles = [ { get_id => 1, get_name => "role1" }, { get_id => 2, get_name => "No_Role" } ];
+	
 	$all_members = MemberDAO->new($db)->get_all_members( $memb );
-
-	print STDERR Dumper $all_members;
-	print STDERR "\nIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
+	$teams = TeamDAO->new($db)->get_teams;	
+	$roles = TeamRoleDAO->new($db)->get_roles;	
+	
 	return { 
 		
+		user => $memb, 
 		member_email => $memb->get_email,
+		teams => $teams,
+		roles => $roles,
 		all_members => $all_members,
-                content => "some content if necessary"
+		#content => "some content if necessary"
 	};	
 };
 
@@ -188,12 +458,10 @@ my $logged_in_or_rejected = sub {
 #    my $is_valid = $req->method eq 'POST' && $req->param('csrf_token') eq $session->param('csrf_token');
     
     $memb = MemberDTO->new( { email => $req->param('username'), password => $req->param('password') } );
-   print STDERR '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%';
-  print STDERR Dumper $memb; 
     my $memb_dao = MemberDAO->new( $db );
     
     $check_credentials = $memb_dao->check_member( $memb );
-   my $tst = undef; 
+    my $tst = undef; 
     
     if( $memb->get_id ){
     
@@ -207,7 +475,7 @@ my $logged_in_or_rejected = sub {
         
         my $html = '';
         
-        my  $vars = { membermail => $memb->get_email(), content => "<a href='/logout'>logout</a>" };
+        my  $vars = { userMail => $memb->get_email(), content => "" };
         $tpl = "admin_panel.tmpl";
         
         my $template_context = $template->context;
@@ -247,7 +515,7 @@ my $admin_panel_crud = sub {
     #if( checks ore done ) { call the action pm with params - for example show team or delete team, but with rbac, cause check give as membername and memberrole too. logout always necessary here, Use DTOs. If credentials aren't valide just redirect to login page  } 
 
     my $res = Plack::Response->new(200);
-  
+
     # Parse hexa into chars 
     $req->{env}->{HTTP_COOKIE} =~ s/\\x\{([0-9A-Fa-f]+)\}/chr(hex($1))/eg; 
     
@@ -256,11 +524,7 @@ my $admin_panel_crud = sub {
     
     if( $session->id eq $session_cookie ){
     
-	#print STDERR Dumper $req;
-	print STDERR "::::::::::::::::::::::::::::::::::::::::";
-	#print STDERR sprintf( "%s", [ split(/=/, $req->{env}->{QUERY_STRING}) ]->[1] ) . "\n";
-	print STDERR Dumper [ split(/=/, $req->{env}->{QUERY_STRING}) ];
-        
+	my %args;
 	
 	$res->content_type('text/html');
         
@@ -271,16 +535,69 @@ my $admin_panel_crud = sub {
         my $vars = { membermail => $memb->get_email, content => "<a href='/logout'>logout</a>" };
         
 	$tpl = "admin_panel.tmpl";
-
 	
 	my $query_parts = [ split( /=/, $req->{env}->{QUERY_STRING} ) ];
 
 	my $amp = undef;	
 	$query_parts = [ split( /&/, $req->{env}->{QUERY_STRING} ) ] if $req->{env}->{QUERY_STRING} =~ /&/;
 		
+	if( defined $req->{env}->{REQUEST_METHOD} && $req->{env}->{REQUEST_METHOD} eq 'POST' ){
+		my $post_data = $req->{env}->{'plack.request.body_parameters'};
+		
+		my $cnt = @{$post_data} if defined $post_data;
+		
+		my $psh = -1;
+		my ( @post, %hidden_post, %_post );
+		
+		if($cnt > 0){
+			
+			for my $i ( 0..$cnt ){
+				# Read hash keys
+				if( $i % 2 == 0 ){
+					my  %post;
+					
+					if( $post_data->[$i] eq 'member_id' || $post_data->[$i] eq 'id' || $post_data->[$i] eq 'ID' ) {
+						$psh++;
+						$post[$psh] = [];
+					}
+
+					$post{ $post_data->[$i] } = $post_data->[$i + 1];
+					
+					if( $psh == -1 ){
+						$hidden_post{ $post_data->[$i] } = $post_data->[$i + 1];
+					} else {
+						push @{ $post[$psh] }, \%post;
+					}
+				} 
+			}
+		}
+		
+		my @post_data;
+		
+		map {
+			my $tmp = $_;
+			my %_tmp;
+
+			map {
+				my $hsh = $_;
+				
+				map{
+					$_tmp{$_} = $hsh->{$_};
+				} keys %{$hsh};
+
+			}  @{$tmp};
+			push @post_data, \%_tmp;
+			
+		} @post;
+
+		$args{post} = [ @post_data ];
+		$args{hidden_post} = \%hidden_post;
+		
+	}
+	
 	if( $req->{env}->{QUERY_STRING} =~ /&/ ){
-		my %args;
 		my $key_val;
+
 		map {
 			$key_val = [ split /=/ ];
 
@@ -288,25 +605,28 @@ my $admin_panel_crud = sub {
 		} @$query_parts;		
 
 		$action = sprintf( "%s", [ split( /=/, $query_parts->[0] ) ]->[1] );
-
+		print STDERR $action . " AAAAAAAAAAAAAAAACCCCTION \n";
 		$vars = $methods{$action}->(\%args);
 	} else {
-			
-		$action = sprintf( "%s", $query_parts->[1] );
-	
-		$vars = $methods{$action}->();
+		if( defined $args{hidden_post}->{action} ){
+						
+			$vars = $methods{ $args{hidden_post}->{action} }->(\%args);
+		}else{
+			$action = sprintf( "%s", $query_parts->[1] );
+			$vars = $methods{$action}->();
+		}	
 	}
 	
-	#$tpl = $action . ".tmpl";
 
-        
-	print STDERR '????????????????????????????????????????????????????????';
-	print STDERR Dumper $vars;	
-        
+	print STDERR "=============***************************\n";
+	print STDERR Dumper \%args;
 	
+	
+	$action = $vars->{'action'} if defined $vars->{'action'};
+
 	my $template_context = $template->context;
         unless ( $template_context->template($tpl)->_is_cached ) { 
-             $template->process($tpl, { vars => $vars, action => $action.'.tmpl' }, \$html) or die " Template processing failed: $template::ERROR";
+             $template->process($tpl, { vars => $vars, action => $action.'.tmpl', site => ' > ' . $action, submit_action => $action }, \$html) or die " Template processing failed: $template::ERROR";
         }
 
         $res->body($html);

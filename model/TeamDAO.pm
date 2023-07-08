@@ -59,6 +59,40 @@ sub new {
     return $self;
 }
 
+sub create_teams {
+
+    my ($self, $team ) = @_;
+
+    my $query = " INSERT INTO teams ( name ) VALUES ( ? )";
+    my $dbh   = $self->{db}->get_dbh();
+    my $sth = $dbh->prepare($query);
+    $sth->execute( $team->get_name );
+}
+
+
+sub update_teams {
+
+    my ($self, $team ) = @_;
+
+    my $query = "UPDATE teams SET  name = ? WHERE id = ?";
+    my $dbh   = $self->{db}->get_dbh();
+    my $sth = $dbh->prepare($query);
+    #$sth->execute( "xoo", 13  );
+    $sth->execute( $team->get_name, $team->get_id );
+}
+
+sub delete_teams {
+
+    my ($self, $team ) = @_;
+
+    if( $team->get_id != 1 ){
+	my $query = "DELETE FROM teams WHERE id = ?";
+	my $dbh   = $self->{db}->get_dbh();
+	my $sth = $dbh->prepare($query);
+	$sth->execute( $team->get_id );
+    	#$sth->execute( '3' );
+    }
+}
 
 sub get_teams {
     my ($self ) = @_;
@@ -67,10 +101,13 @@ sub get_teams {
     my $dbh   = $self->{db}->get_dbh();
     my $sth = $dbh->prepare($query);
     $sth->execute();
+    
     my @teams;
+    
     while (my $team_data = $sth->fetchrow_hashref) {
-        push @teams, TeamDTO->new()->set_data($team_data);
+        push @teams, TeamDTO->new($team_data);
     }
+
     $sth->finish;
 
     return \@teams;
