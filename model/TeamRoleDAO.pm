@@ -110,6 +110,7 @@ sub create_role {
     my $dbh   = $self->{db}->get_dbh();
     my $sth = $dbh->prepare($query);
     $sth->execute( $role->get_name );
+    $sth->finish;
 }
 
 sub delete_role {

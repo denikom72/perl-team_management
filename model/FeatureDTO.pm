@@ -1,4 +1,4 @@
-package TeamRoleDTO;
+package FeatureDTO;
 
 use strict;
 use warnings;
@@ -6,14 +6,14 @@ use Data::Dumper;
 
 =head1 NAME
 
-TeamRoleDTO - Data Transfer Object for representing a team
+FeatureDTO - Data Transfer Object for representing a team
 
 =head1 SYNOPSIS
 
-  use TeamRoleDTO;
+  use FeatureDTO;
 
-  # Create a new TeamRoleDTO object
-  my $team = TeamRoleDTO->new();
+  # Create a new FeatureDTO object
+  my $team = FeatureDTO->new();
 
   # Set the team data
   my $data = {
@@ -32,13 +32,13 @@ TeamRoleDTO - Data Transfer Object for representing a team
 
 =head1 DESCRIPTION
 
-The TeamRoleDTO module represents a Data Transfer Object for a team.
+The FeatureDTO module represents a Data Transfer Object for a team.
 
 =head1 METHODS
 
 =head2 new()
 
-Creates a new TeamRoleDTO object.
+Creates a new FeatureDTO object.
 
 =head2 set_data($data)
 
@@ -88,21 +88,46 @@ sub new {
     my ($class, $data) = @_;
     
     print STDERR "xxxx__________===================================================\n";
-    print STDERR Dumper $data;
+    #print STDERR Dumper $data;
     print STDERR "===================================================\n";
     
     my $self = {
         id   => undef,
         name => undef,
+	role => undef,
+	on_role => undef,
+	team => undef
     };
     
     bless $self, $class;
     
     $self->set_id($data->{id})     if exists $data->{id};
     $self->set_id($data->{ID})     if exists $data->{ID};
-    $self->set_name($data->{name}) if exists $data->{name};
+    #$self->set_name($data->{name}) if exists $data->{name};
+    $self->set_role($data->{name}) if exists $data->{name};
+    $self->set_on_role($data->{on_role}) if exists $data->{on_role};
+    $self->set_team($data->{team}) if exists $data->{team};
+    my @features; 
     
+    map {
+    	if ( $_ =~ m/feature.*/gi ){
+		push ( @features, sprintf("%s", [ split /feature_/, $_ ]->[1] ) ); 
+	}
+    }  keys %{$data};
+
+    $self->set_features(\@features);
     return $self;
+}
+
+sub set_features {
+    my ($self, $features) = @_;
+    # TODO : PLAUSIBILIIES
+    $self->{features} = $features;    
+}
+
+sub get_features {
+    my ($self) = @_;
+    $self->{features};    
 }
 
 sub set_data {
@@ -127,7 +152,7 @@ sub set_name {
     # Perform plausibility check: Name must be non-empty and contain only letters, numbers, and spaces
     #die "Invalid name: $name" unless defined $name && $name =~ /^[A-Za-z0-9\s]+$/;
     
-    $self->{name} = $name;
+    $self->{name}->{$name} = $name;
 }
 
 sub get_id {
@@ -140,5 +165,47 @@ sub get_name {
     return $self->{name};
 }
 
-1;  # End of TeamRoleDTO module
+sub set_role {
+    my ($self, $role) = @_;
+    
+    # Perform plausibility check: Name must be non-empty and contain only letters, numbers, and spaces
+    #die "Invalid name: $name" unless defined $name && $name =~ /^[A-Za-z0-9\s]+$/;
+    
+    $self->{role} = $role;
+}
+
+sub get_role {
+    my ($self) = @_;
+    return $self->{role};
+}
+
+sub set_on_role {
+    my ($self, $on_role) = @_;
+    
+    # Perform plausibility check: Name must be non-empty and contain only letters, numbers, and spaces
+    #die "Invalid name: $name" unless defined $name && $name =~ /^[A-Za-z0-9\s]+$/;
+    
+    $self->{on_role} = $on_role;
+}
+
+sub get_on_role {
+    my ($self) = @_;
+    return $self->{on_role};
+}
+
+sub set_team {
+    my ($self, $team) = @_;
+    
+    # Perform plausibility check: Name must be non-empty and contain only letters, numbers, and spaces
+    #die "Invalid name: $name" unless defined $name && $name =~ /^[A-Za-z0-9\s]+$/;
+    
+    $self->{team} = $team;
+}
+
+sub get_team {
+    my ($self) = @_;
+    return $self->{team};
+}
+
+1;  # End of FeatureDTO module
 

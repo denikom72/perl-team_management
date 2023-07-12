@@ -1,33 +1,77 @@
 <ul class="user-list">
 
+<style>
+
+
+
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    padding: 12px 16px;
+    z-index: 1;
+  }
+
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+</style>
 
 	[% BLOCK act %]
-       		<select name="action"> 
-		[% FOR item IN vars.actions %]
-		      <option value="[% item.action_id %]">[% item.name %]</option>
+
+
+	<div class="dropdown">
+		<span>Features</span>
+			
+			<div class="dropdown-content">
+				[% FOR a_item IN vars.actions %]
+				     <table width="200px"><tr width="200px"><td width="170px"><label> [% a_item %]</label></td><td width="30px"><input type="checkbox" name="feature_[% a_item %]" value="[% a_item %]"></td></tr></table>
+				[% END %]
+			</div>
+			
+		</div>
+
+       		<!-- select name="action"> 
+		[% FOR a_item IN vars.actions %]
+		      <option value="[% a_item %]">[% a_item %]</option>
+		[% END %]
+		</select -->
+	[% END %]
+	
+	[% BLOCK role %]
+       		<select name="on_role" > 
+		[% FOR r_item IN vars.team_roles %]
+		      <option value="[% r_item.get_id %]">[% r_item.get_name %]</option>
 		[% END %]
 		</select>
 	[% END %]
 	
-	[% BLOCK role %]
-       		<select name="role"> 
-		[% FOR item IN vars.team_roles %]
-		      <option value="[% item.get_id %]">[% item.get_name %]</option>
-		[% END %]
-		</select>
-	[% END %]
-
+	
 	[% FOR item IN vars.team_roles %]
+		[% FOR r_item IN vars.team_roles %]
+		
 		<li>
+	
 		   <input type="text" name="ID" id="ID_[% item.get_id %]" placeholder="[% item.get_id %]" value="[% item.get_id %]" readonly>
-		   <input type="text" name="name" id="rolename_[% item.get_id %]" placeholder="[% item.get_name %]">
+	
+		   <input type="text" name="name" id="rolename_[% item.get_id %]" placeholder="[% item.get_name %]"  value="[% item.get_name %]">
 
 		   <input type="checkbox" name="active" />
 
-			[% INCLUDE act %]
-			
-			[% INCLUDE role %]
+		
+		   [% INCLUDE role %]
 
-		</li>
+		   [% INCLUDE act %]
+		
+                </li>
+		
+                [% END %]
 	[% END %]
 </ul>

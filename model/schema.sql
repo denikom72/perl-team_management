@@ -26,6 +26,18 @@ CREATE TABLE IF NOT EXISTS team_roles (
   description TEXT
 );
 
+-- Feature Configurator Table
+CREATE TABLE IF NOT EXISTS features(
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+  	name TEXT NOT NULL UNIQUE,
+  	role_id INTEGER NOT NULL,
+	team_id INTEGER NOT NULL,
+	on_role_id INTEGER NOT NULL,
+  	FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE,
+  	FOREIGN KEY (role_id) REFERENCES team_roles (id) ON DELETE CASCADE,
+  	FOREIGN KEY (on_role_id) REFERENCES team_roles (id) ON DELETE CASCADE
+  	UNIQUE (name, team_id, role_id, on_role_id)
+);
 -- Create the users table
 -- Insert a default user with hashed password
 -- INSERT INTO users (username, password) VALUES ('admin', '5f4dcc3b5aa765d61d8327deb882cf99');

@@ -130,9 +130,7 @@ sub update_member {
 			team_id = (SELECT id FROM teams WHERE name = ?),
     			role_id = (SELECT id FROM team_roles WHERE name = ?)
 		WHERE 
-			id = ?;
-			
-    ";
+			id = ?;";
     
     my $sth = $dbh->prepare($query);
     $sth->execute( $member->get_name, $member->get_email, $member->get_member_team, $member->get_member_role, $member->get_id );

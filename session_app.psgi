@@ -17,6 +17,7 @@ use MemberDAO;
 use TeamDTO;
 use TeamDAO;
 
+use FeatureDAO;
 
 use TeamRoleDAO;
 
@@ -43,7 +44,6 @@ my $template = Template->new({
 
 
 #### THE BEGINNING OF THE RBAC CONSTRUCTION #####
-
 my %methods = (
 	team_members => \&team_members,
 	all_members => \&all_members,	
@@ -60,6 +60,25 @@ my %methods = (
 	create_all_members => \&create_members,
 	delete_all_members => \&delete_members,
 	update_all_members => \&update_members
+);
+
+my %feat_names = (
+
+	team_members => "team_members",
+	all_members => "all_members",	
+	team_roles => "roles",
+	teams => "teams",
+	logged_in_member => "logged_in_member",
+	create_teams => "create_teams",	
+	delete_teams => "delete_teams",	
+	update_teams => "update_teams",	
+	create_team_roles => "create_roles",	
+	delete_team_roles => "delete_roles",
+	update_team_roles => "update_roles",
+	create_all_members => "create_members",
+	delete_all_members => "delete_members",
+	update_all_members => "update_members"
+
 );
 
 #### END OF RBAC ####
@@ -270,12 +289,15 @@ sub update_roles {
 
 	my $args = shift;
 	my $roles;
-	
+	print STDERR "''''''''''''''''''''''''''''''''''''''''''''''''''\n";
+	print STDERR Dumper $args;	
 	my $roleDAO = TeamRoleDAO->new( $db );
+	my $featureDAO = FeatureDAO->new( $db );
 
 	map {
 		if( defined $_->{active} && $_->{active} eq 'on' ){
-			$roleDAO->save_role( TeamRoleDTO->new( $_ ) ); 
+			$roleDAO->save_role( TeamRoleDTO->new( $_ ) );
+		        $featureDAO->save_feature( FeatureDTO->new( $_ ) );	
 		}
 	} @{ $args->{post} };
 
@@ -310,12 +332,14 @@ sub create_roles {
 	my $roles;
 
 	my $teamRoleDAO = TeamRoleDAO->new($db);
+	my $featureDAO = FeatureDAO->new($db);
 	
 	map {
 		my $data = $_;
 		if( defined $data->{active} && $data->{active} eq 'on' ){
 					
 			$teamRoleDAO->create_role( TeamRoleDTO->new( $data ) ); 
+		        $featureDAO->create_feature( FeatureDTO->new( $data ) );	
 		}
 	} @{ $args->{post} };
 	
@@ -371,15 +395,17 @@ sub team_members {
 sub team_roles {
 	
 	my $roles = TeamRoleDAO->new($db)->get_roles;
+	my @actions = values %feat_names; 
 
 	#### MOCK DATA ###
-	my $actions = [ { action_id => 1, name => "action11" }, { action_id => 2, name => "action2" } ];
+	#my $actions = [ { action_id => 1, name => "action11" }, { action_id => 2, name => "action2" } ];
+	#my %actions = ( action_name => "action11",  name => "action2" );
 	#my $roles = [ { role_id => 1, name => "role1" }, { role_id => 2, name => "role2" } ];
 	
 	return {
 		user => $memb, 
 		team_roles => $roles,
-		actions => $actions,
+		actions => \@actions,
                 content => "TODO : EVERY ROLE HAVE TO HAS AN CLICK EVENT AND RESPONSE TO IT RIGHTS OF IT. MEANS THE BOUNCE OF FEATURES/METHODS IT CAN USE ON OTHER ROLES - EXAMPLE, ROLE CAN CREATE USER WITH ROLE XY, BUT NOT WITH THE ROLE - ADMIN"
 	};
 	
