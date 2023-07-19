@@ -103,10 +103,15 @@ sub new {
     
     $self->set_id($data->{id})     if exists $data->{id};
     $self->set_id($data->{ID})     if exists $data->{ID};
-    #$self->set_name($data->{name}) if exists $data->{name};
     $self->set_role($data->{name}) if exists $data->{name};
+    $self->set_role_id($data->{role_id}) if exists $data->{role_id};
+    $self->set_role($data->{role_name}) if exists $data->{role_name};
     $self->set_on_role($data->{on_role}) if exists $data->{on_role};
+    $self->set_on_role_id($data->{on_role_id}) if exists $data->{on_role_id};
+    $self->set_on_role_name($data->{on_role_name}) if exists $data->{on_role_name};
     $self->set_team($data->{team}) if exists $data->{team};
+    $self->set_feature($data->{f_name}) if exists $data->{f_name};
+    
     my @features; 
     
     map {
@@ -115,7 +120,25 @@ sub new {
 	}
     }  keys %{$data};
 
+    #print STDERR $#features ."  ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ\n "; 
+    #print STDERR Dumper @features;
+    
+    if( $#features == -1 ){
+	    #print STDERR $#features ."  ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ\n "; 
+    #print STDERR Dumper split (/,/, $self->get_feature);
+    #print STDERR "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ\n "; 
+	map {
+        	
+		push ( @features, $_  );
+	
+	} split(",", $self->get_feature);
+
+    }
+
     $self->set_features(\@features);
+
+    #print STDERR "DDDDDMMMPPP \n";
+    #print STDERR Dumper $self->get_features;
     return $self;
 }
 
@@ -130,11 +153,49 @@ sub get_features {
     $self->{features};    
 }
 
+sub set_feature {
+    my ($self, $features) = @_;
+    # TODO : PLAUSIBILIIES
+    $self->{features} = $features;    
+}
+
+sub get_feature {
+    my ($self) = @_;
+    $self->{features};    
+}
 sub set_data {
     my ($self, $data) = @_;
     
     $self->set_id($data->{id})     if exists $data->{id};
     $self->set_name($data->{name}) if exists $data->{name};
+}
+
+sub set_role_id {
+    my ($self, $role_id) = @_;
+    
+    # Perform plausibility check: role_id must be a positive integer
+    die "Invalid role_id: $role_id" unless defined $role_id && $role_id =~ /^[1-9]\d*$/;
+    
+    $self->{role_id} = $role_id;
+}
+
+sub get_role_id {
+    my ($self) = @_;
+    return $self->{role_id};
+}
+
+sub set_on_role_id {
+    my ($self, $on_role_id) = @_;
+    
+    # Perform plausibility check: on_role_id must be a positive integer
+    #die "Invalid on_role_id: $on_role_id" unless defined $on_role_id && $on_role_id =~ /^[1-9]\d*$/;
+    
+    $self->{on_role_id} = $on_role_id;
+}
+
+sub get_on_role_id {
+    my ($self) = @_;
+    return $self->{on_role_id};
 }
 
 sub set_id {
@@ -178,6 +239,21 @@ sub get_role {
     my ($self) = @_;
     return $self->{role};
 }
+
+sub set_on_role_name {
+    my ($self, $on_role_name) = @_;
+    
+    # Perform plausibility check: Name must be non-empty and contain only letters, numbers, and spaces
+    #die "Invalid name: $name" unless defined $name && $name =~ /^[A-Za-z0-9\s]+$/;
+    
+    $self->{on_role_name} = $on_role_name;
+}
+
+sub get_on_role_name {
+    my ($self) = @_;
+    return $self->{on_role_name};
+}
+
 
 sub set_on_role {
     my ($self, $on_role) = @_;

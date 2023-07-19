@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS team_roles (
 -- Feature Configurator Table
 CREATE TABLE IF NOT EXISTS features(
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-  	name TEXT NOT NULL UNIQUE,
+  	name TEXT NOT NULL,
   	role_id INTEGER NOT NULL,
 	team_id INTEGER NOT NULL,
 	on_role_id INTEGER NOT NULL,

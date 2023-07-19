@@ -72,7 +72,9 @@ sub connect {
     return if $self->{dbh};  # Return if already connected
 
     my $dsn = "dbi:SQLite:dbname=" . $self->{db_file};
-    $self->{dbh} = DBI->connect($dsn) or die "Failed to connect to database: $DBI::errstr";
+    $self->{dbh} = DBI->connect($dsn, "", "", { RaiseError => 1, TraceLevel => "SQL", ShowErrorStatement => 1, PrintWarn => 1, }) or die "Failed to connect to database: $DBI::errstr";
+
+    $self->{dbh}->trace(2);
 }
 
 =head2 disconnect()

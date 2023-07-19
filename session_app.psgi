@@ -289,15 +289,16 @@ sub update_roles {
 
 	my $args = shift;
 	my $roles;
-	print STDERR "''''''''''''''''''''''''''''''''''''''''''''''''''\n";
-	print STDERR Dumper $args;	
+	#print STDERR "''''''''''''''''''''''''''''''''''''''''''''''''''\n";
+	#print STDERR Dumper $args;	
 	my $roleDAO = TeamRoleDAO->new( $db );
 	my $featureDAO = FeatureDAO->new( $db );
 
 	map {
 		if( defined $_->{active} && $_->{active} eq 'on' ){
-			$roleDAO->save_role( TeamRoleDTO->new( $_ ) );
-		        $featureDAO->save_feature( FeatureDTO->new( $_ ) );	
+			#$roleDAO->save_role( TeamRoleDTO->new( $_ ) );
+			# it isn't possible to update the features, just create a new unique combination
+			$featureDAO->create_feature( FeatureDTO->new( $_ ) );	
 		}
 	} @{ $args->{post} };
 
@@ -395,15 +396,20 @@ sub team_members {
 sub team_roles {
 	
 	my $roles = TeamRoleDAO->new($db)->get_roles;
+	my $features = FeatureDAO->new($db)->show_features;
 	my @actions = values %feat_names; 
 
 	#### MOCK DATA ###
 	#my $actions = [ { action_id => 1, name => "action11" }, { action_id => 2, name => "action2" } ];
 	#my %actions = ( action_name => "action11",  name => "action2" );
 	#my $roles = [ { role_id => 1, name => "role1" }, { role_id => 2, name => "role2" } ];
+	print STDERR "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT\n";
+	print STDERR Dumper $features;	
+	print STDERR "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT\n";
 	
 	return {
 		user => $memb, 
+		role_f_role => $features,
 		team_roles => $roles,
 		actions => \@actions,
                 content => "TODO : EVERY ROLE HAVE TO HAS AN CLICK EVENT AND RESPONSE TO IT RIGHTS OF IT. MEANS THE BOUNCE OF FEATURES/METHODS IT CAN USE ON OTHER ROLES - EXAMPLE, ROLE CAN CREATE USER WITH ROLE XY, BUT NOT WITH THE ROLE - ADMIN"
@@ -644,8 +650,8 @@ my $admin_panel_crud = sub {
 	}
 	
 
-	print STDERR "=============***************************\n";
-	print STDERR Dumper \%args;
+	#print STDERR "=============***************************\n";
+	#print STDERR Dumper \%args;
 	
 	
 	$action = $vars->{'action'} if defined $vars->{'action'};

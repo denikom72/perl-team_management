@@ -5,6 +5,7 @@ use warnings;
 use lib "model";
 use FeatureDTO;
 use Data::Dumper;
+use Try::Tiny;
 
 =head1 NAME
 
@@ -61,27 +62,68 @@ sub new {
 }
 
 
-sub get_features {
+sub show_features {
     my ($self ) = @_;
 
-    my $query = "SELECT * FROM team_roles";
+
+    my $query = "
+      SELECT 
+    r.name AS role_name,
+    r.id AS role_id,
+    --GROUP_CONCAT(on_r.name) AS on_role_name,
+    on_r.name AS on_role_name,
+    on_r.id AS on_role_id,
+    agg_f.f_name AS f_name
+FROM
+    team_roles AS r
+LEFT JOIN
+    (
+    SELECT
+        f.role_id,
+        f.on_role_id,
+        GROUP_CONCAT(f.name) AS f_name
+    FROM
+        features AS f
+    GROUP BY
+        f.role_id,
+        f.on_role_id
+    ) AS agg_f ON r.id = agg_f.role_id
+    LEFT JOIN
+        team_roles AS on_r ON agg_f.on_role_id = on_r.id
+    --GROUP BY r.id
+    ORDER BY role_id;";
+    
+    
     my $dbh   = $self->{db}->get_dbh();
     my $sth = $dbh->prepare($query);
+    
     $sth->execute();
     
-    my @team_roles;
+    my @features;
     
-    while (my $role_data = $sth->fetchrow_hashref) {
-        
-	my $team_role = FeatureDTO->new();
-	$team_role->set_data($role_data);
-	push @team_roles, $team_role;
+    my $n = 0;
+    my $cmp_check = "";
+    my $feature_rule; 
+    while (my $f_data = $sth->fetchrow_hashref) {
+   	
+	    #print STDERR "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\n";
+	#print STDERR Dumper $f_data;
+	
+	$feature_rule = FeatureDTO->new($f_data);
+	push( @features, $feature_rule );
+
     }
     
     $sth->finish;
-
-    return \@team_roles;
+    
+    #print STDERR "FFFFFFFFFFFFFFFFFFFFFFEEEEEEEEEEEEAAAAAAAAAAATURESI";
+    #print STDERR Dumper @features;
+    #print STDERR "FFFFFFFFFFFFFFFFFFFFFFEEEEEEEEEEEEAAAAAAAAAAATURESI";
+   
+    return \@features;
 }
+
+
 
 sub save_feature {
 
@@ -90,22 +132,28 @@ sub save_feature {
     print STDERR "XXXXXXXXXXXXXXXXXXX===================================================\n";
     print STDERR Dumper $feature;
     print STDERR "===================================================\n";
-    map {
+    
+    my $dbh   = $self->{db}->get_dbh();
+    
     $query = "UPDATE 
     			features
 		SET 
-    			role_id = ( SELECT id FROM team_roles WHERE name = ? ),
-			-- team_id = (SELECT id FROM teams WHERE name = ? ),
+    			
+			role_id = ( SELECT id FROM team_roles WHERE name = ? ),
+			team_id = ?,
     			on_role_id = ?
 		WHERE 
-			name = ?;";
+			name = ?";
     
-    } $feature->get_features;
-    
-    my $dbh   = $self->{db}->get_dbh();
     my $sth = $dbh->prepare($query);
-    #$sth->execute( $feature->get_role, $feature->get_team, $feature->get_on_role, $_ );
-    $sth->execute( $feature->get_role, $feature->get_on_role, $_ );
+    
+    map {
+    	
+	$sth->execute( $feature->get_role, 1, $feature->get_on_role, $_ );
+    
+    } @{$feature->get_features};
+    
+    $sth->finish;
 }
 
 sub create_feature {
@@ -113,7 +161,7 @@ sub create_feature {
     my ($self, $feature ) = @_;
     my $query;
     
-    print STDERR "IIIIIIIIIIIIIIIIIIIIIIIIIIIIII===================================================\n";
+    print STDERR "IIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
     print STDERR Dumper $feature;
     print STDERR "===================================================\n";
    
@@ -134,14 +182,23 @@ sub create_feature {
     
     map {
     
-
+	print STDERR "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\n";
 	print STDERR Dumper $_; 
-	$sth->execute( $_, $feature->get_on_role, 1, $feature->get_role );
+	
+	try {
+    		my $sth = $dbh->prepare($query);
+		$sth->execute( $_, 1, $feature->get_on_role, $feature->get_role );
+    		$sth->finish;
+				
+	} catch {
+	
+		croak("Error creating role rules: $_");
+	}
     
     } @{$feature->get_features};
+    
     #$sth->execute( "create60", 16, 5, "role3" );
-	#$sth->execute();
-	$sth->finish;
+    #$sth->execute();
     
 }
 

@@ -23,16 +23,22 @@
     display: block;
   }
 </style>
-
 	[% BLOCK act %]
 
 
 	<div class="dropdown">
 		<span>Features</span>
-			
 			<div class="dropdown-content">
+				[% SET checked = "" %]
+				[% SET feat_itm = "" %]
 				[% FOR a_item IN vars.actions %]
-				     <table width="200px"><tr width="200px"><td width="170px"><label> [% a_item %]</label></td><td width="30px"><input type="checkbox" name="feature_[% a_item %]" value="[% a_item %]"></td></tr></table>
+					[% FOR f_it IN item.get_features %]
+						[% IF a_item == f_it %]
+							[% checked = "checked" %]
+						[% END %]
+					[% END %]
+				     <table width="200px"><tr width="200px"><td width="170px"><label> [% a_item %]</label></td><td width="30px"><input type="checkbox" name="feature_[% a_item %]" value="[% a_item %]" [% checked %]></td></tr></table>
+				[% checked = "" %]
 				[% END %]
 			</div>
 			
@@ -47,24 +53,34 @@
 	
 	[% BLOCK role %]
        		<select name="on_role" > 
-		[% FOR r_item IN vars.team_roles %]
-		      <option value="[% r_item.get_id %]">[% r_item.get_name %]</option>
+		<!--  FOR r_it IN vars.team_roles -->
+		[% SET selected = "" %]
+		[% FOR r_it IN vars.team_roles %]
+		        [% IF item.get_on_role_name == r_it.get_name %]
+				[% selected = "selected" %]
+		      		<option value="[% r_it.get_id %]" selected>[% r_it.get_name %]_[% r_it.get_id %]  </option>
+			[% ELSE %]
+		      		<option value="[% r_it.get_id %]">[% r_it.get_name %]</option>
+			[% END %]
+				<!-- option value="[% r_it.get_id %]">[% r_it.get_name %]</option -->
+			[% selected = "" %]
+			
 		[% END %]
 		</select>
 	[% END %]
 	
 	
-	[% FOR item IN vars.team_roles %]
-		[% FOR r_item IN vars.team_roles %]
+	<!-- FOR item IN vars.team_roles %] -->
+	[% FOR item IN vars.role_f_role %]
+		<!-- FOR r_it IN vars.role_f_role  -->
 		
 		<li>
 	
-		   <input type="text" name="ID" id="ID_[% item.get_id %]" placeholder="[% item.get_id %]" value="[% item.get_id %]" readonly>
+		   <input type="text" name="ID" id="ID_[% item.get_role_id %]" placeholder="[% item.get_role_id %]" value="[% item.get_role_id %]" readonly>
 	
-		   <input type="text" name="name" id="rolename_[% item.get_id %]" placeholder="[% item.get_name %]"  value="[% item.get_name %]">
+		   <input type="text" name="name" id="rolename_[% item.get_role_id %]" placeholder="[% item.get_role_name %][% item.get_name %]"  value="[% item.get_role_name %][% item.get_role %]">
 
 		   <input type="checkbox" name="active" />
-
 		
 		   [% INCLUDE role %]
 
@@ -72,6 +88,16 @@
 		
                 </li>
 		
-                [% END %]
+                <!-- END -->
 	[% END %]
 </ul>
+
+			[% FOR item2 IN vars.role_f_role %]
+
+						<div> PPPPP : [% item2.get_features %]</div>
+					[% FOR f_it IN item2.get_features %]
+			
+						<div>XXXX : [% f_it %]</div>
+						
+					[% END %]
+			[% END %]
