@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 sub new {
-    my $class = shift;
+    my ( $class, $data ) = @_;
     my $self = {
         role_id       => undef,
         on_role_id    => undef,
@@ -14,6 +14,15 @@ sub new {
     };
 
     bless $self, $class;
+    
+    $self->set_id($data->{id})     if exists $data->{id};
+    $self->set_id($data->{ID})     if exists $data->{ID};
+    $self->set_role_id($data->{role_id}) if exists $data->{role_id};
+    $self->set_on_role_id($data->{on_role_id}) if exists $data->{on_role_id};
+    $self->set_on_role_name($data->{on_role_name}) if exists $data->{on_role_name};
+    #$self->set_team($data->{team}) if exists $data->{team};
+    $self->set_feature_name($data->{f_name}) if exists $data->{f_name};
+    
     return $self;
 }
 
