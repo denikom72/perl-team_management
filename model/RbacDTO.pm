@@ -20,6 +20,7 @@ sub new {
     $self->set_role_id($data->{role_id}) if exists $data->{role_id};
     $self->set_on_role_id($data->{on_role_id}) if exists $data->{on_role_id};
     $self->set_on_role_name($data->{on_role_name}) if exists $data->{on_role_name};
+    $self->set_role_name($data->{role_name}) if exists $data->{role_name};
     #$self->set_team($data->{team}) if exists $data->{team};
     $self->set_feature_name($data->{f_name}) if exists $data->{f_name};
     
@@ -76,6 +77,18 @@ sub get_on_role_name {
 sub get_feature_name {
     my ($self) = @_;
     return $self->{feature_name};
+}
+
+sub get_k_feature_name {
+    my ($self) = @_;
+    my $k_f = "k_".$self->get_feature_name;
+    $k_f;
+}
+
+sub get_f_ref {
+    my ($self) = @_;
+    $self->{f_ref} = '\&' . $self->get_feature_name;
+    return $self->{f_ref};
 }
 
 1; # Don't forget to return a true value at the end of the module

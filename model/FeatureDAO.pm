@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use lib "model";
 use FeatureDTO;
+use RbacDTO;
 use Data::Dumper;
 use Try::Tiny;
 
@@ -60,6 +61,67 @@ sub new {
     bless $self, $class;
     return $self;
 }
+
+
+
+sub load_rbac {
+    my ($self ) = @_;
+
+
+    my $query = " SELECT 
+    			f.role_id AS role_id, 
+			f.on_role_id AS on_role_id, 
+			f.name AS f_name,
+			tr.name AS role_name, 
+			( SELECT 
+				name 
+			  FROM 
+			  	team_roles AS te_r 
+			  WHERE 
+			  	f.on_role_id = te_r.id 
+			) AS on_role_name 
+		  FROM 
+			
+		  	features AS f 
+		  LEFT JOIN 
+		  	
+		  	team_roles AS tr 
+		  ON 
+		  	f.role_id = tr.id;";
+
+    
+    
+    my $dbh   = $self->{db}->get_dbh();
+    my $sth = $dbh->prepare($query);
+    
+    $sth->execute();
+    
+    my @rbac;
+    
+    my $n = 0;
+    my $cmp_check = "";
+    my $rbac_rule; 
+    while (my $rbac_data = $sth->fetchrow_hashref) {
+   	
+	    #print STDERR "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\n";
+	    #print STDERR Dumper $rbac_data;
+	
+	$rbac_rule = RbacDTO->new($rbac_data);
+	push( @rbac, $rbac_rule );
+	
+	#push( @rbac, $rbac_data );
+
+    }
+    
+    $sth->finish;
+    
+    #print STDERR "FFFFFFFFFFFFFFFFFFFFFFEEEEEEEEEEEEAAAAAAAAAAATURESI";
+    #print STDERR Dumper @rbac;
+    #print STDERR "FFFFFFFFFFFFFFFFFFFFFFEEEEEEEEEEEEAAAAAAAAAAATURESI";
+   
+    return \@rbac;
+}
+
 
 
 sub show_features {

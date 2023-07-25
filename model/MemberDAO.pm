@@ -101,7 +101,7 @@ sub create_member {
     $sth->finish;
 }
 
-
+=head1 OLD DELETE MEMBER
 sub delete_member {
     my ($self, $member) = @_;
 #	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
@@ -114,7 +114,7 @@ sub delete_member {
     $sth->execute( $member->get_id );
     $sth->finish;
 }
-
+=cut
 
 sub update_member {
     my ($self, $member) = @_;
@@ -156,7 +156,7 @@ sub pull_member_by_id {
     my ($self, $member) = @_;
 
     my $dbh = $self->{db}->get_dbh();
-    my $query = "SELECT tm.id AS member_id, tm.name AS member_name, tm.email AS member_email, tr.name AS member_role_name, t.name AS member_team_name
+    my $query = "SELECT tm.id AS member_id, tm.role_id AS role_id, tm.name AS member_name, tm.email AS member_email, tr.name AS member_role_name, t.name AS member_team_name
 			
     			FROM 
 		
@@ -181,7 +181,9 @@ sub pull_member_by_id {
     $sth->finish;
 
     $member->set_data( $member_data );
-    
+    print STDERR "::::::::::::::::::::::::::::::::::::\n";	
+    print STDERR Dumper $member_data;    
+    print STDERR "::::::::::::::::::::::::::::::::::::\n";	
     return $member;
 }
 
@@ -215,23 +217,51 @@ Deletes a member record from the database.
 =cut
 
 sub delete_member {
-    my ($self, $member) = @_;
+    my ($self, $member, $logged_in_member ) = @_;
 
-    my $dbh = $self->{db}->get_dbh();
-    my $query = "DELETE FROM team_members WHERE id = ?";
+	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
+	print STDERR Dumper $member;
+	print STDERR Dumper $logged_in_member;
+	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
+    
+	my $dbh = $self->{db}->get_dbh();
+    
+    	#my $query = "DELETE FROM team_members WHERE id = ?";
+
+    	my $query = "
+		 DELETE FROM 
+    			team_members 
+		 AS 
+		 	tm 
+		 WHERE 
+		 	id = ? 
+		 AND 
+		 	tm.role_id 
+		 IN 
+		 	( SELECT 
+		 		on_role_id 
+			  FROM 
+				features 
+			  WHERE 
+				? = role_id 
+		    	 );";
+
     my $sth = $dbh->prepare($query);
-    $sth->execute($member->get_id);
+    
+    $sth->execute( $member->get_id, $logged_in_member->get_member_role_id );
+    
     $sth->finish;
 }
 
 sub get_all_members {
-    my ($self, $member) = @_;
+    my ($self, $logged_in_member) = @_;
 
     my $query = "SELECT 
     			
     			tm.id AS member_id,
 			tm.name AS name,
 			tm.email AS email,
+			tm.role_id AS m_rl_id,
 			tr.name AS member_role,
 			t.name AS member_team
 		FROM 
@@ -242,16 +272,38 @@ sub get_all_members {
 			team_roles tr ON tm.role_id = tr.id
 		JOIN 
 			
-			teams t ON t.id = tm.team_id";
+			teams t ON t.id = tm.team_id
+		WHERE
+			m_rl_id
+		 IN 
+		 	( SELECT 
+		 		on_role_id 
+			  FROM 
+				features 
+			  WHERE 
+				? = role_id 
+		    	 );";
+			
 
     my $dbh   = $self->{db}->get_dbh();
+    
     my $sth = $dbh->prepare($query);
-    $sth->execute();
+   
+	print STDERR "333333333333333333333333333333333333333\n";
+	print STDERR Dumper $logged_in_member;
+	print STDERR "<<333333333333333333333333333333333333333\n";
+    $sth->execute( $logged_in_member->get_member_role_id );
     
     my @members;
     while (my $member_data = $sth->fetchrow_hashref) {
-	    
-	    push @members, MemberDTO->new( $member_data );
+	   
+	    #if( $member->get_id == $member_data->{ member_id } ){
+	    	
+		    #push @members, $member->set_data( $member );
+
+		#} else {
+	    	push @members, MemberDTO->new( $member_data );
+		#}
     }
     $sth->finish;
     

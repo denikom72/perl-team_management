@@ -8,6 +8,10 @@ use Data::Dumper;
 use Template;
 use DBI;
 use CGI::Session;
+use Try::Tiny;
+use Storable;
+use File::Slurp;
+use lib '.';
 #use Plack::Session;
 
 use lib "model";
@@ -31,8 +35,69 @@ my ( $tpl, $vars, $session, $member, $memb );
 #my $dbh = DBI->connect("dbi:SQLite:dbname=$db_file") or die "Couldn't connect to database: $DBI::errstr";
 
 
-my $db = Database->new('team_management.db');
+	my $meths = {};
+	#my $mth = {};
+	
+	my $db = Database->new('team_management.db');
 
+	### MOCKUP DATA ###	
+	$meths->{logged_in_member}->{Role7} = \&logged_in_member;
+	$meths->{team_roles}->{Role6} = \&team_roles;
+	$meths->{team_roles}->{Role7} = \&team_roles;
+	print STDERR "44444444444444444444444\n";
+	#print STDERR Dumper $meths;
+	print STDERR "44444444444444444444444\n";
+	
+	my $mthds = FeatureDAO->new($db)->load_rbac;
+	
+	try {
+		open( my $filehandle, '>', "RbacConf.pm") or die "Cannot open file RbacConf.pm: $!";
+		print $filehandle "package RbacConf;\nuse warnings;\nuse Storable qw(nfreeze thaw);\nuse Exporter 'import';\nour \$mth = {};\nour \@EXPORT_OK = qw(\$get_mth \$mth);\n";
+		#print Sfilehandle "\nour $mth = {};\n";
+		close $filehandle;
+
+		open( my $filehandle2, '>>', "RbacConf.pm") or die "Cannot open file RbacConf.pm: $!";
+		map {
+			#my $tmp_f_ref = $_->get_f_ref;
+			
+
+			#$mth->{ $_->get_feature_name }->{ $_->get_role_name } = '\&'.$_->get_feature_name;	
+			
+			#print STDERR Dumper $mth;
+			#my $mth;	
+			#print STDERR '$mth->{' . $_->get_role_name . '}->{' . $_->get_feature_name . '} = \&' .$_->get_feature_name.";" if defined $_->get_role_name;
+			#AVOID THE DOUBLE BACKSLASH PRODUCED FROM PERL TRYING TO BUILD A REFERENCE ON THE SUB ABOVE
+			print $filehandle2 '$mth->{' . $_->get_role_name . '}->{' . $_->get_feature_name . '} = \&' .$_->get_feature_name.";\n" if defined $_->get_role_name;	
+		} @{$mthds};
+		
+		print $filehandle2 "our \$get_mth = sub { return \$mth; };\n\n";
+		#print $filehandle2 "\nstore \$mth, 'RbacConf_data.storable';\n";
+		
+		print $filehandle2 "1;\n";
+
+		close $filehandle2;
+		#my $rbac_content = read_file("RbacConf.pm");
+		
+		#print STDERR $rbac_content;
+		
+		
+		#do "./RbacConf.pl" or die "Error loading data file 'RbacConf.pm': $!";
+		require "./RbacConf.pm" or die "Error loading data file 'RbacConf.pm': $!";
+		use RbacConf qw($mth);	
+		#my $mymth = retrieve('RbacConf_data.storable'); 
+		#my $mymth = $RbacConf::get_mth->();
+		print STDERR "||||||||||||||||||||||||||||||||||||||||||||||||||||||\n";
+		print STDERR Dumper $mth;
+		print STDERR "||||||||||||||||||||||||||||||||||||||||||||||||||||||\n";
+	} catch {
+		my $error = $_;
+		# Handle the exception
+		print "Caught exception: $error\n";
+	};
+	
+	print STDERR "\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
+	#print STDERR $mth->{create_teams}->{Role7};
+	#print STDERR $mth->{create_teams}->{role7};
 
 
 # Set up the template engine
@@ -62,11 +127,14 @@ my %methods = (
 	update_all_members => \&update_members
 );
 
+
+
+
 my %feat_names = (
 
 	team_members => "team_members",
 	all_members => "all_members",	
-	team_roles => "roles",
+	team_roles => "team_roles",
 	teams => "teams",
 	logged_in_member => "logged_in_member",
 	create_teams => "create_teams",	
@@ -81,12 +149,15 @@ my %feat_names = (
 
 );
 
+
+print STDERR Dumper \%methods;
 #### END OF RBAC ####
 
-sub logged_in_member {
+sub RbacConf::logged_in_member {
 	
 	$memb = new MemberDAO($db)->pull_member_by_id( $memb );
-			
+	
+	# TODO: JUST RETURN INSTANCES. EVERY PART CAN USE THEN THE NEEDED ACCESSORS. EVEN TTK CAN DO IT.			
         return { 
 		userMail => $memb->get_email, 
 		memberMail => $memb->get_email,
@@ -99,8 +170,7 @@ sub logged_in_member {
 
 }
 
-
-sub members {
+sub RbacConf::members {
 	
 	return { 
 		
@@ -110,7 +180,7 @@ sub members {
 
 };
 
-sub create_members {
+sub RbacConf::create_members {
 
 	my $args = shift;
 	my ( $member_list, $teams, $roles );
@@ -142,7 +212,7 @@ sub create_members {
 	};	
 }
 
-sub delete_members {
+sub RbacConf::delete_members {
 
 	my $args = shift;
 	my ( $member_list, $teams, $roles );
@@ -153,7 +223,7 @@ sub delete_members {
 		my $data = $_;
 		if( defined $data->{active} && $data->{active} eq 'on' ){
 					
-			$memberDAO->delete_member( MemberDTO->new( $data ) ); 
+			$memberDAO->delete_member( MemberDTO->new( $data ), $memb ); 
 		}
 	} @{ $args->{post} };
 	
@@ -175,7 +245,7 @@ sub delete_members {
 }
 
 
-sub update_members {
+sub RbacConf::update_members {
 
 	my $args = shift;
 	my ( $member_list, $teams, $roles );
@@ -209,7 +279,7 @@ sub update_members {
 
 
 
-sub create_teams {
+sub RbacConf::create_teams {
 
 	my $args = shift;
 	my $team_list;
@@ -239,7 +309,7 @@ sub create_teams {
 	}	
 }
 
-sub delete_teams {
+sub RbacConf::delete_teams {
 
 	my $args = shift;
 	my $team_list;
@@ -262,7 +332,7 @@ sub delete_teams {
 	}	
 }
 
-sub update_teams {
+sub RbacConf::update_teams {
 
 	my $args = shift;
 	my $team_list;
@@ -285,7 +355,7 @@ sub update_teams {
 	}	
 }
 
-sub update_roles {
+sub RbacConf::update_roles {
 
 	my $args = shift;
 	my $roles;
@@ -307,7 +377,7 @@ sub update_roles {
 	$roles;
 }
 
-sub delete_roles {
+sub RbacConf::delete_roles {
 
 	my $args = shift;
 	my $roles;
@@ -327,7 +397,7 @@ sub delete_roles {
 	$roles;
 }
 
-sub create_roles {
+sub RbacConf::create_roles {
 
 	my $args = shift;
 	my $roles;
@@ -351,7 +421,7 @@ sub create_roles {
 }
 
 
-sub teams {
+sub RbacConf::teams {
 	my $team_list;
 	$team_list = TeamDAO->new($db)->get_teams();
 	
@@ -363,7 +433,7 @@ sub teams {
 
 };
 
-sub team_members {
+sub RbacConf::team_members {
 	
 	my $args = shift;
 	
@@ -393,7 +463,7 @@ sub team_members {
 	};	
 };
 
-sub team_roles {
+sub RbacConf::team_roles {
 	
 	my $roles = TeamRoleDAO->new($db)->get_roles;
 	my $features = FeatureDAO->new($db)->show_features;
@@ -417,7 +487,7 @@ sub team_roles {
 	
 };
 
-sub all_members {
+sub RbacConf::all_members {
 	
 	my $args = shift;
 	
@@ -496,7 +566,9 @@ my $logged_in_or_rejected = sub {
     my $tst = undef; 
     
     if( $memb->get_id ){
-    
+    	
+	$memb = $memb_dao->pull_member_by_id($memb);
+	
 	$session = CGI::Session->new();
         my $cookie = $session->cookie();
 	$session->load( $cookie );
@@ -556,6 +628,9 @@ my $admin_panel_crud = sub {
     
     if( $session->id eq $session_cookie ){
     
+		print STDERR "\n\n ????????????????? " . $memb->get_member_role . " ??????????????????? \n\n" ;
+		print STDERR Dumper $memb;
+		print STDERR "\n\n ????????????????? " . $memb->get_member_role . " ??????????????????? \n\n" ;
 	my %args;
 	
 	$res->content_type('text/html');
@@ -629,7 +704,6 @@ my $admin_panel_crud = sub {
 	
 	if( $req->{env}->{QUERY_STRING} =~ /&/ ){
 		my $key_val;
-
 		map {
 			$key_val = [ split /=/ ];
 
@@ -638,14 +712,41 @@ my $admin_panel_crud = sub {
 
 		$action = sprintf( "%s", [ split( /=/, $query_parts->[0] ) ]->[1] );
 		print STDERR $action . " AAAAAAAAAAAAAAAACCCCTION \n";
-		$vars = $methods{$action}->(\%args);
+		#$vars = $methods{$action}->(\%args);
+		my $act = $feat_names{ $action };
+		print STDERR $act . " AAAAAAAAAAAAAAAACCCCTION \n";
+		$vars = $mth->{ $memb->get_member_role }->{ $feat_names{ $action } }->(\%args);
+		#$vars = $mth->{ Role7 }->{ create_members }->(\%args);
 	} else {
 		if( defined $args{hidden_post}->{action} ){
 						
-			$vars = $methods{ $args{hidden_post}->{action} }->(\%args);
+			my $act = $feat_names{ $args{hidden_post}->{action} };
+
+			#print STDERRR " CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC --> " . $memb->get_member_role . " --> " . $feat_names{ $args{hidden_post}->{action} . ";
+
+			#$vars = $mth->{ $memb->get_member_role }->{ $act }->(\%args);
+			$vars = $mth->{ $memb->get_member_role }->{ $feat_names{ $args{hidden_post}->{action} } }->(\%args);
+			#$vars = $methods{ $args{hidden_post}->{action} }->(\%args);
+			#$vars = $mth->{ $memb->get_member_role }->{ $args{hidden_post}->{action} }->(\%args);
+			#$vars = $mth->{ Role7 }->{ create_members }->(\%args);
 		}else{
 			$action = sprintf( "%s", $query_parts->[1] );
-			$vars = $methods{$action}->();
+			#$vars = $methods{$action}->();
+			#$vars = $meths->{team_roles}->{Role2}->();
+			
+			#$vars = $meths->{$action}->{ $memb->get_member_role }->();
+			print STDERR "++++^^^^^^^^^^^^^^^^^^^^^^^^^^";
+			print STDERR Dumper $mth;
+			print STDERR "\n\n < " . $memb->get_member_role . " --- $action > \n\n";
+			print STDERR "----^^^^^^^^^^^^^^^^^^^^^^^^^^";
+			
+			#$vars = $mth->{ $memb->get_member_role }->{ $action }->();
+			$vars = $mth->{ $memb->get_member_role }->{ $feat_names{ $action } }->();
+			
+			#$vars = $mth->{ Role7 }->{ team_roles }->();
+			
+			print STDERR $mth->{ Role7 }->{ team_roles }->();
+			print STDERR "*********************";
 		}	
 	}
 	

@@ -44,6 +44,7 @@ sub new {
     my ($class, $data ) = @_;
     print STDERR "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n";
     print STDERR Dumper $data;
+    print STDERR "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n";
     my $self = {
         _email    => undef,
         _password => undef,
@@ -61,8 +62,10 @@ sub new {
 	$self->set_id( $data->{member_id} ) if defined $data->{member_id};
 	$self->set_id( $data->{ID} ) if defined $data->{ID};
 	$self->set_member_role( $data->{member_role} ) if defined $data->{member_role};
+	$self->set_member_role( $data->{member_role_name} ) if defined $data->{member_role_name};
 	$self->set_member_team( $data->{member_team} ) if defined $data->{member_team};
 	$self->set_member_role( $data->{role} ) if defined $data->{role};
+	$self->set_member_role_id( $data->{role_id} ) if defined $data->{role_id};
 	$self->set_member_team( $data->{team} ) if defined $data->{team};
 	$self->set_email( $data->{email} ) if defined $data->{email};
 	$self->set_name( $data->{name} ) if defined $data->{name};
@@ -71,9 +74,9 @@ sub new {
 	croak("Error creating member: $_");
     };
    
-    print STDERR "__________________________________________\n";	
+    print STDERR ">>>__________________________________________\n";	
     print STDERR Dumper $self;
-
+    print STDERR ">>>__________________________________________\n";	
 
     return $self;
 }
@@ -98,6 +101,25 @@ sub set_email {
         croak("Invalid email format");
     }
 }
+
+sub get_member_role_id{
+    my ($self) = @_;
+    return $self->{_role_id};
+}
+
+
+sub set_member_role_id {
+    my ($self, $role_id) = @_;
+    $role_id = sprintf("%d", $role_id);
+    #	if($role_id){
+    if ($role_id =~ /^[0-9]+$/) {
+        $self->{_role_id} = $role_id;
+    }
+    else {
+        croak("Invalid role format");
+    }
+}
+
 
 sub get_member_role {
     my ($self) = @_;
@@ -182,7 +204,7 @@ sub set_id {
     
     #$id = sprintf("%n", $id);
     #if ($id =~ /^[1-9]*$/) {
-        $self->{_id} = $id;
+        $self->{_id} = sprintf("%d", $id);
 	#}
 	#else {
 	#croak("Invalid ID format");
@@ -195,10 +217,13 @@ sub set_data {
     
     try {
 	$self->set_id( $data->{member_id} ) if defined $data->{member_id};
+	$self->set_member_role_id( $data->{role_id} ) if defined $data->{role_id};
 	$self->set_member_role( $data->{member_role} ) if defined $data->{member_role};
-	$self->set_member_team( $data->{member_team} ) if defined $data->{member_team};
+	$self->set_member_role( $data->{member_role_name} ) if defined $data->{member_role_name};
+	$self->set_member_team( $data->{member_team_name} ) if defined $data->{member_team_name};
 	$self->set_email( $data->{email} ) if defined $data->{email};
 	$self->set_name( $data->{name} ) if defined $data->{name};
+	$self->set_name( $data->{member_name} ) if defined $data->{member_name};
 	$self->set_password( $data->{password} ) if defined $data->{password};
     } catch {
 	croak("Error creating member: $_");
