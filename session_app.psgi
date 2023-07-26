@@ -191,7 +191,7 @@ sub RbacConf::create_members {
 		my $data = $_;
 		if( defined $data->{active} && $data->{active} eq 'on' ){
 					
-			$memberDAO->create_member( MemberDTO->new( $data ) ); 
+			$memberDAO->create_member( MemberDTO->new( $data ), $memb ); 
 		}
 	} @{ $args->{post} };
 	

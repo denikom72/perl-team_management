@@ -47,7 +47,21 @@ sub new {
     }, $class;
 }
 
+sub sql_rid_in_features {
+    my ( $self, $rid )= ( shift, shift );
 
+    my $where_in_feat = $rid.
+    			" IN ( SELECT 
+		 		on_role_id 
+			FROM 
+				features 
+			WHERE 
+				? = role_id 
+		    	 );
+    ";
+
+    $where_in_feat;
+}
 
 sub check_member {
     my ($self, $member) = @_;
@@ -81,8 +95,8 @@ Creates a new member record in the database.
 =cut
 
 sub create_member {
-    my ($self, $member) = @_;
-#	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
+    my ( $self, $member, $logged_in_member ) = @_;
+	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
 #	print STDERR Dumper $member;
 #	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
     my $dbh = $self->{db}->get_dbh();
@@ -93,11 +107,25 @@ sub create_member {
 		FROM 
 			teams, team_roles
 		WHERE 
-			teams.name = ? AND team_roles.name = ?";
+			teams.name = ? 
+		AND 
+			team_roles.name = ?
+		AND" . $self->sql_rid_in_features( ' team_roles.id') .";";
+
+    print STDERR $query;
+    print STDERR Dumper $member;
+    print STDERR Dumper $logged_in_member;
     
     my $sth = $dbh->prepare($query);
     #$sth->execute( $member->get_name, $member->get_email, "password22" );
-    $sth->execute( $member->get_name, $member->get_email, "password22", $member->get_member_team, $member->get_member_role );
+    $sth->execute( 	$member->get_name,
+	    		$member->get_email, 
+			"password22", 
+			$member->get_member_team, 
+			$member->get_member_role, 
+			$logged_in_member->get_member_role_id
+    );
+    
     $sth->finish;
 }
 
@@ -282,7 +310,8 @@ sub get_all_members {
 				features 
 			  WHERE 
 				? = role_id 
-		    	 );";
+		    	 );
+			 ";
 			
 
     my $dbh   = $self->{db}->get_dbh();
