@@ -96,9 +96,6 @@ Creates a new member record in the database.
 
 sub create_member {
     my ( $self, $member, $logged_in_member ) = @_;
-	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
-#	print STDERR Dumper $member;
-#	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
     my $dbh = $self->{db}->get_dbh();
     my $query = "INSERT INTO team_members 
     			(team_id, name, email, password, role_id)
@@ -132,9 +129,6 @@ sub create_member {
 =head1 OLD DELETE MEMBER
 sub delete_member {
     my ($self, $member) = @_;
-#	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
-#	print STDERR Dumper $member;
-#	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
     my $dbh = $self->{db}->get_dbh();
     my $query = "DELETE FROM team_members WHERE id = ?";
     
@@ -145,10 +139,7 @@ sub delete_member {
 =cut
 
 sub update_member {
-    my ($self, $member) = @_;
-#	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
-#	print STDERR Dumper $member;
-#	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
+    my ($self, $member, $logged_in_member) = @_;
     my $dbh = $self->{db}->get_dbh();
     my $query = "UPDATE 
     			team_members
@@ -158,10 +149,20 @@ sub update_member {
 			team_id = (SELECT id FROM teams WHERE name = ?),
     			role_id = (SELECT id FROM team_roles WHERE name = ?)
 		WHERE 
-			id = ?;";
-    
+			id = ?
+		AND" . $self->sql_rid_in_features( ' role_id') .";";
+
+
     my $sth = $dbh->prepare($query);
-    $sth->execute( $member->get_name, $member->get_email, $member->get_member_team, $member->get_member_role, $member->get_id );
+    
+    $sth->execute( $member->get_name,
+	    	   $member->get_email,
+		   $member->get_member_team,
+		   $member->get_member_role,
+		   $member->get_id,
+	  	   $logged_in_member->get_member_role_id
+    );
+    
     $sth->finish;
 }
 
@@ -209,9 +210,6 @@ sub pull_member_by_id {
     $sth->finish;
 
     $member->set_data( $member_data );
-    print STDERR "::::::::::::::::::::::::::::::::::::\n";	
-    print STDERR Dumper $member_data;    
-    print STDERR "::::::::::::::::::::::::::::::::::::\n";	
     return $member;
 }
 
@@ -247,10 +245,6 @@ Deletes a member record from the database.
 sub delete_member {
     my ($self, $member, $logged_in_member ) = @_;
 
-	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
-	print STDERR Dumper $member;
-	print STDERR Dumper $logged_in_member;
-	print STDERR "\n (((((((((((((((((((((((((((((((((((((((   \n";
     
 	my $dbh = $self->{db}->get_dbh();
     
@@ -272,7 +266,9 @@ sub delete_member {
 				features 
 			  WHERE 
 				? = role_id 
-		    	 );";
+		    	 )
+			 
+			 ;";
 
     my $sth = $dbh->prepare($query);
     
@@ -317,35 +313,19 @@ sub get_all_members {
     my $dbh   = $self->{db}->get_dbh();
     
     my $sth = $dbh->prepare($query);
-   
-	print STDERR "333333333333333333333333333333333333333\n";
-	print STDERR Dumper $logged_in_member;
-	print STDERR "<<333333333333333333333333333333333333333\n";
     $sth->execute( $logged_in_member->get_member_role_id );
     
     my @members;
     while (my $member_data = $sth->fetchrow_hashref) {
-	   
-	    #if( $member->get_id == $member_data->{ member_id } ){
-	    	
-		    #push @members, $member->set_data( $member );
-
-		#} else {
-	    	push @members, MemberDTO->new( $member_data );
-		#}
+    	push @members, MemberDTO->new( $member_data );
     }
     $sth->finish;
     
-    print STDERR "==========================================================\n";
-    print STDERR Dumper \@members;
-
-    print STDERR "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}\n";
     return \@members;
 
 }
 
 sub get_team_members {
-    #my ($self, $team) = @_;
     my ($self, $member) = @_;
 
     my $query = "SELECT 
@@ -353,6 +333,7 @@ sub get_team_members {
 			tm.name AS name,
 			tm.email AS email,
 			tr.name AS member_role,
+			tm.role_id AS role_id,
 			t.name AS member_team
 		 FROM 
 		 	team_members AS tm
@@ -364,8 +345,12 @@ sub get_team_members {
 			
 			teams AS t ON t.id = tm.team_id
 		
-		WHERE 
-			tm.id = ?";
+			 
+		WHERE
+	       		t.id = tm.team_id	
+		
+		AND " . $self->sql_rid_in_features( ' role_id') . ";";
+		
 
     my $dbh   = $self->{db}->get_dbh();
     my $sth = $dbh->prepare($query);
@@ -377,9 +362,6 @@ sub get_team_members {
     }
     $sth->finish;
 
-    print STDERR "==========================================================\n";
-    print STDERR Dumper \@members;
-    
     return \@members;
 }
 

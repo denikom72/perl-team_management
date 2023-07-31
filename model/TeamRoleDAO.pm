@@ -87,10 +87,6 @@ sub save_role {
 
     my ($self, $role ) = @_;
 
-    #print STDERR "XXXXXXXXXXXXXXXXXXX===================================================\n";
-    #print STDERR Dumper $role;
-    #print STDERR "===================================================\n";
-    
     my $query = " UPDATE team_roles SET name = ? WHERE id = ? ";
     my $dbh   = $self->{db}->get_dbh();
     my $sth = $dbh->prepare($query);
@@ -101,11 +97,6 @@ sub create_role {
 
     my ($self, $role ) = @_;
 
-    
-    print STDERR "IIIIIIIIIIIIIIIIIIIIIIIIIIIIII===================================================\n";
-    print STDERR Dumper $role;
-    print STDERR "===================================================\n";
-    
     my $query = " INSERT INTO team_roles ( name ) VALUES ( ? )";
     my $dbh   = $self->{db}->get_dbh();
     my $sth = $dbh->prepare($query);
@@ -116,10 +107,6 @@ sub create_role {
 sub delete_role {
 
     my ($self, $role ) = @_;
-
-    #print STDERR "XXXXXXXXXXXXXXXXXXX===================================================\n";
-    #print STDERR Dumper $role;
-    #print STDERR "===================================================\n";
     
     my $query = " DELETE FROM team_roles WHERE id = ? ";
     my $dbh   = $self->{db}->get_dbh();

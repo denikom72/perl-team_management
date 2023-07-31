@@ -30,75 +30,40 @@ use Database;
 
 my ( $tpl, $vars, $session, $member, $memb );
 
-# Configure the database connection
-#my $db_file = 'team_management.db';
-#my $dbh = DBI->connect("dbi:SQLite:dbname=$db_file") or die "Couldn't connect to database: $DBI::errstr";
 
-
-	my $meths = {};
-	#my $mth = {};
+my $meths = {};
+#my $mth = {};
 	
-	my $db = Database->new('team_management.db');
+my $db = Database->new('team_management.db');
 
-	### MOCKUP DATA ###	
-	$meths->{logged_in_member}->{Role7} = \&logged_in_member;
-	$meths->{team_roles}->{Role6} = \&team_roles;
-	$meths->{team_roles}->{Role7} = \&team_roles;
-	print STDERR "44444444444444444444444\n";
-	#print STDERR Dumper $meths;
-	print STDERR "44444444444444444444444\n";
+my $mthds = FeatureDAO->new($db)->load_rbac;
 	
-	my $mthds = FeatureDAO->new($db)->load_rbac;
+try {
+	open( my $filehandle, '>', "RbacConf.pm") or die "Cannot open file RbacConf.pm: $!";
+	print $filehandle "package RbacConf;\nuse warnings;\nuse Storable qw(nfreeze thaw);\nuse Exporter 'import';\nour \$mth = {};\nour \@EXPORT_OK = qw(\$get_mth \$mth);\n";
+	#print Sfilehandle "\nour $mth = {};\n";
+	close $filehandle;
+
+	open( my $filehandle2, '>>', "RbacConf.pm") or die "Cannot open file RbacConf.pm: $!";
+	map {
+		#AVOID THE DOUBLE BACKSLASH PRODUCED FROM PERL TRYING TO BUILD A REFERENCE ON THE SUB ABOVE
+		print $filehandle2 '$mth->{' . $_->get_role_name . '}->{' . $_->get_feature_name . '} = \&' .$_->get_feature_name.";\n" if defined $_->get_role_name;	
+	} @{$mthds};
+		
+	print $filehandle2 "our \$get_mth = sub { return \$mth; };\n\n";
+		
+	print $filehandle2 "1;\n";
+
+	close $filehandle2;
 	
-	try {
-		open( my $filehandle, '>', "RbacConf.pm") or die "Cannot open file RbacConf.pm: $!";
-		print $filehandle "package RbacConf;\nuse warnings;\nuse Storable qw(nfreeze thaw);\nuse Exporter 'import';\nour \$mth = {};\nour \@EXPORT_OK = qw(\$get_mth \$mth);\n";
-		#print Sfilehandle "\nour $mth = {};\n";
-		close $filehandle;
-
-		open( my $filehandle2, '>>', "RbacConf.pm") or die "Cannot open file RbacConf.pm: $!";
-		map {
-			#my $tmp_f_ref = $_->get_f_ref;
-			
-
-			#$mth->{ $_->get_feature_name }->{ $_->get_role_name } = '\&'.$_->get_feature_name;	
-			
-			#print STDERR Dumper $mth;
-			#my $mth;	
-			#print STDERR '$mth->{' . $_->get_role_name . '}->{' . $_->get_feature_name . '} = \&' .$_->get_feature_name.";" if defined $_->get_role_name;
-			#AVOID THE DOUBLE BACKSLASH PRODUCED FROM PERL TRYING TO BUILD A REFERENCE ON THE SUB ABOVE
-			print $filehandle2 '$mth->{' . $_->get_role_name . '}->{' . $_->get_feature_name . '} = \&' .$_->get_feature_name.";\n" if defined $_->get_role_name;	
-		} @{$mthds};
-		
-		print $filehandle2 "our \$get_mth = sub { return \$mth; };\n\n";
-		#print $filehandle2 "\nstore \$mth, 'RbacConf_data.storable';\n";
-		
-		print $filehandle2 "1;\n";
-
-		close $filehandle2;
-		#my $rbac_content = read_file("RbacConf.pm");
-		
-		#print STDERR $rbac_content;
-		
-		
-		#do "./RbacConf.pl" or die "Error loading data file 'RbacConf.pm': $!";
-		require "./RbacConf.pm" or die "Error loading data file 'RbacConf.pm': $!";
-		use RbacConf qw($mth);	
-		#my $mymth = retrieve('RbacConf_data.storable'); 
-		#my $mymth = $RbacConf::get_mth->();
-		print STDERR "||||||||||||||||||||||||||||||||||||||||||||||||||||||\n";
-		print STDERR Dumper $mth;
-		print STDERR "||||||||||||||||||||||||||||||||||||||||||||||||||||||\n";
-	} catch {
-		my $error = $_;
-		# Handle the exception
-		print "Caught exception: $error\n";
-	};
+	require "./RbacConf.pm" or die "Error loading data file 'RbacConf.pm': $!";
+	use RbacConf qw($mth);	
+} catch {
+	my $error = $_;
+	# Handle the exception
+	print "Caught exception: $error\n";
+};
 	
-	print STDERR "\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
-	#print STDERR $mth->{create_teams}->{Role7};
-	#print STDERR $mth->{create_teams}->{role7};
-
 
 # Set up the template engine
 my $template = Template->new({
@@ -108,7 +73,7 @@ my $template = Template->new({
 }) or die "Couldn't initialize template: $Template::ERROR";
 
 
-#### THE BEGINNING OF THE RBAC CONSTRUCTION #####
+#### LAUNCH RBAC #####
 my %methods = (
 	team_members => \&team_members,
 	all_members => \&all_members,	
@@ -149,8 +114,6 @@ my %feat_names = (
 
 );
 
-
-print STDERR Dumper \%methods;
 #### END OF RBAC ####
 
 sub RbacConf::logged_in_member {
@@ -256,7 +219,7 @@ sub RbacConf::update_members {
 		my $data = $_;
 		if( defined $data->{active} && $data->{active} eq 'on' ){
 					
-			$memberDAO->update_member( MemberDTO->new( $data ) ); 
+			$memberDAO->update_member( MemberDTO->new( $data ), $memb ); 
 		}
 	} @{ $args->{post} };
 	
@@ -284,11 +247,6 @@ sub RbacConf::create_teams {
 	my $args = shift;
 	my $team_list;
 	
-	print STDERR "333333333333333333333333333333333333333333333\n";
-	print STDERR Dumper $args;
-
-	print STDERR "333333333333333333333333333333333333333333333\n";
-
 	my $teamDAO = TeamDAO->new($db);
 	
 	map {
@@ -340,7 +298,6 @@ sub RbacConf::update_teams {
 	my $teamDAO = TeamDAO->new($db);
 	
 	map {
-		#my $data = $_;
 		if( defined $_->{active} && $_->{active} eq 'on' ){
 			$teamDAO->update_teams( TeamDTO->new( $_ ) ); 
 		}
@@ -359,14 +316,11 @@ sub RbacConf::update_roles {
 
 	my $args = shift;
 	my $roles;
-	#print STDERR "''''''''''''''''''''''''''''''''''''''''''''''''''\n";
-	#print STDERR Dumper $args;	
 	my $roleDAO = TeamRoleDAO->new( $db );
 	my $featureDAO = FeatureDAO->new( $db );
 
 	map {
 		if( defined $_->{active} && $_->{active} eq 'on' ){
-			#$roleDAO->save_role( TeamRoleDTO->new( $_ ) );
 			# it isn't possible to update the features, just create a new unique combination
 			$featureDAO->create_feature( FeatureDTO->new( $_ ) );	
 		}
@@ -473,16 +427,12 @@ sub RbacConf::team_roles {
 	#my $actions = [ { action_id => 1, name => "action11" }, { action_id => 2, name => "action2" } ];
 	#my %actions = ( action_name => "action11",  name => "action2" );
 	#my $roles = [ { role_id => 1, name => "role1" }, { role_id => 2, name => "role2" } ];
-	print STDERR "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT\n";
-	print STDERR Dumper $features;	
-	print STDERR "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT\n";
 	
 	return {
 		user => $memb, 
 		role_f_role => $features,
 		team_roles => $roles,
 		actions => \@actions,
-                content => "TODO : EVERY ROLE HAVE TO HAS AN CLICK EVENT AND RESPONSE TO IT RIGHTS OF IT. MEANS THE BOUNCE OF FEATURES/METHODS IT CAN USE ON OTHER ROLES - EXAMPLE, ROLE CAN CREATE USER WITH ROLE XY, BUT NOT WITH THE ROLE - ADMIN"
 	};
 	
 };
@@ -493,9 +443,6 @@ sub RbacConf::all_members {
 	
 	my ( $all_members, $teams, $roles );
 	
-	#print STDERR "==========================================================\n";
-	#print STDERR Dumper $all_members;
-
 	#### MOCK DATA ###
 	#my $teams = [ { get_id => 1, get_name => "No_Team" }, { get_id => 2, get_name => "team2" } ];
 	#my $roles = [ { get_id => 1, get_name => "role1" }, { get_id => 2, get_name => "No_Role" } ];
@@ -511,7 +458,6 @@ sub RbacConf::all_members {
 		teams => $teams,
 		roles => $roles,
 		all_members => $all_members,
-		#content => "some content if necessary"
 	};	
 };
 
@@ -526,7 +472,7 @@ my $loginpage = sub {
     
     my $csrf_token = generate_csrf_token();
     
-    #TODO: how to set here the session-state-cookie expiration?
+    #TODO:  set session-state-cookie expiration
 
     my $res = Plack::Response->new(200);
     $res->content_type('text/html');
@@ -616,8 +562,6 @@ my $admin_panel_crud = sub {
     #check_csrf_token();
     #check_session_id
     
-    #if( checks ore done ) { call the action pm with params - for example show team or delete team, but with rbac, cause check give as membername and memberrole too. logout always necessary here, Use DTOs. If credentials aren't valide just redirect to login page  } 
-
     my $res = Plack::Response->new(200);
 
     # Parse hexa into chars 
@@ -627,10 +571,6 @@ my $admin_panel_crud = sub {
     $session_cookie =~ s/^\s*|\s*$//gi;
     
     if( $session->id eq $session_cookie ){
-    
-		print STDERR "\n\n ????????????????? " . $memb->get_member_role . " ??????????????????? \n\n" ;
-		print STDERR Dumper $memb;
-		print STDERR "\n\n ????????????????? " . $memb->get_member_role . " ??????????????????? \n\n" ;
 	my %args;
 	
 	$res->content_type('text/html');
@@ -711,39 +651,17 @@ my $admin_panel_crud = sub {
 		} @$query_parts;		
 
 		$action = sprintf( "%s", [ split( /=/, $query_parts->[0] ) ]->[1] );
-		print STDERR $action . " AAAAAAAAAAAAAAAACCCCTION \n";
-		#$vars = $methods{$action}->(\%args);
 		my $act = $feat_names{ $action };
-		print STDERR $act . " AAAAAAAAAAAAAAAACCCCTION \n";
 		$vars = $mth->{ $memb->get_member_role }->{ $feat_names{ $action } }->(\%args);
-		#$vars = $mth->{ Role7 }->{ create_members }->(\%args);
 	} else {
 		if( defined $args{hidden_post}->{action} ){
 						
 			my $act = $feat_names{ $args{hidden_post}->{action} };
 
-			#print STDERRR " CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC --> " . $memb->get_member_role . " --> " . $feat_names{ $args{hidden_post}->{action} . ";
-
-			#$vars = $mth->{ $memb->get_member_role }->{ $act }->(\%args);
 			$vars = $mth->{ $memb->get_member_role }->{ $feat_names{ $args{hidden_post}->{action} } }->(\%args);
-			#$vars = $methods{ $args{hidden_post}->{action} }->(\%args);
-			#$vars = $mth->{ $memb->get_member_role }->{ $args{hidden_post}->{action} }->(\%args);
-			#$vars = $mth->{ Role7 }->{ create_members }->(\%args);
 		}else{
 			$action = sprintf( "%s", $query_parts->[1] );
-			#$vars = $methods{$action}->();
-			#$vars = $meths->{team_roles}->{Role2}->();
-			
-			#$vars = $meths->{$action}->{ $memb->get_member_role }->();
-			print STDERR "++++^^^^^^^^^^^^^^^^^^^^^^^^^^";
-			print STDERR Dumper $mth;
-			print STDERR "\n\n < " . $memb->get_member_role . " --- $action > \n\n";
-			print STDERR "----^^^^^^^^^^^^^^^^^^^^^^^^^^";
-			
-			#$vars = $mth->{ $memb->get_member_role }->{ $action }->();
 			$vars = $mth->{ $memb->get_member_role }->{ $feat_names{ $action } }->();
-			
-			#$vars = $mth->{ Role7 }->{ team_roles }->();
 			
 			print STDERR $mth->{ Role7 }->{ team_roles }->();
 			print STDERR "*********************";
@@ -751,9 +669,6 @@ my $admin_panel_crud = sub {
 	}
 	
 
-	#print STDERR "=============***************************\n";
-	#print STDERR Dumper \%args;
-	
 	
 	$action = $vars->{'action'} if defined $vars->{'action'};
 
